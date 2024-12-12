@@ -1,0 +1,257 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{AAC9F6B3-A23B-41AE-B363-B05DADE79334}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>IQArchiveManager.Client</RootNamespace>
+    <AssemblyName>IQArchiveManager.Client</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Csv, Version=2.0.84.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Csv.2.0.84\lib\net40\Csv.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Win32.Registry, Version=4.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Win32.Registry.4.7.0\lib\net461\Microsoft.Win32.Registry.dll</HintPath>
+    </Reference>
+    <Reference Include="NAudio, Version=2.0.1.0, Culture=neutral, PublicKeyToken=e279aa5131008a41, processorArchitecture=MSIL">
+      <HintPath>..\packages\NAudio.2.0.1\lib\netstandard2.0\NAudio.dll</HintPath>
+    </Reference>
+    <Reference Include="NAudio.Asio, Version=2.0.0.0, Culture=neutral, PublicKeyToken=e279aa5131008a41, processorArchitecture=MSIL">
+      <HintPath>..\packages\NAudio.Asio.2.0.0\lib\netstandard2.0\NAudio.Asio.dll</HintPath>
+    </Reference>
+    <Reference Include="NAudio.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=e279aa5131008a41, processorArchitecture=MSIL">
+      <HintPath>..\packages\NAudio.Core.2.0.0\lib\netstandard2.0\NAudio.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="NAudio.Midi, Version=2.0.1.0, Culture=neutral, PublicKeyToken=e279aa5131008a41, processorArchitecture=MSIL">
+      <HintPath>..\packages\NAudio.Midi.2.0.1\lib\netstandard2.0\NAudio.Midi.dll</HintPath>
+    </Reference>
+    <Reference Include="NAudio.Wasapi, Version=2.0.0.0, Culture=neutral, PublicKeyToken=e279aa5131008a41, processorArchitecture=MSIL">
+      <HintPath>..\packages\NAudio.Wasapi.2.0.0\lib\netstandard2.0\NAudio.Wasapi.dll</HintPath>
+    </Reference>
+    <Reference Include="NAudio.WinForms, Version=2.0.1.0, Culture=neutral, PublicKeyToken=e279aa5131008a41, processorArchitecture=MSIL">
+      <HintPath>..\packages\NAudio.WinForms.2.0.1\lib\net472\NAudio.WinForms.dll</HintPath>
+    </Reference>
+    <Reference Include="NAudio.WinMM, Version=2.0.1.0, Culture=neutral, PublicKeyToken=e279aa5131008a41, processorArchitecture=MSIL">
+      <HintPath>..\packages\NAudio.WinMM.2.0.1\lib\netstandard2.0\NAudio.WinMM.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Security.AccessControl, Version=4.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.AccessControl.4.7.0\lib\net461\System.Security.AccessControl.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Principal.Windows, Version=4.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Principal.Windows.4.7.0\lib\net461\System.Security.Principal.Windows.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Components\ClipGrid.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Components\ClipGrid.Designer.cs">
+      <DependentUpon>ClipGrid.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Components\CorrectNoDelimiterForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Components\CorrectNoDelimiterForm.Designer.cs">
+      <DependentUpon>CorrectNoDelimiterForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Components\ExportStatsDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Components\ExportStatsDialog.Designer.cs">
+      <DependentUpon>ExportStatsDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Components\RebuildDatabaseDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Components\RebuildDatabaseDialog.Designer.cs">
+      <DependentUpon>RebuildDatabaseDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Components\ScrollableDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Components\ScrollableDialog.Designer.cs">
+      <DependentUpon>ScrollableDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Components\StationBrandingsEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Components\StationBrandingsEditor.Designer.cs">
+      <DependentUpon>StationBrandingsEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Components\TimeSpanChooser.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Components\TimeSpanChooser.Designer.cs">
+      <DependentUpon>TimeSpanChooser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Components\TransportControls.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Components\TransportControls.Designer.cs">
+      <DependentUpon>TransportControls.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Components\WorkerDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Components\WorkerDialog.Designer.cs">
+      <DependentUpon>WorkerDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="EnviornmentPicker.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EnviornmentPicker.Designer.cs">
+      <DependentUpon>EnviornmentPicker.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GeneralUtils.cs" />
+    <Compile Include="IQEnviornment.cs" />
+    <Compile Include="MainEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainEditor.Designer.cs">
+      <DependentUpon>MainEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainMenu.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainMenu.Designer.cs">
+      <DependentUpon>MainMenu.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Pre\PreProcessorFileReader.cs" />
+    <Compile Include="Pre\PreProcessorFileStreamReader.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RdsModes\BaseRdsMode.cs" />
+    <Compile Include="RdsModes\PsParsedPatch.cs" />
+    <Compile Include="RdsModes\RdsModeId.cs" />
+    <Compile Include="RdsModes\RdsPatchKzcrLegacy.cs" />
+    <Compile Include="RdsModes\RdsPatchNoDelimiters.cs" />
+    <Compile Include="RdsPatch.cs" />
+    <Compile Include="RdsModes\PatchHelper.cs" />
+    <Compile Include="RdsModes\RdsPatchCumulus.cs" />
+    <Compile Include="RdsModes\RdsPatchKzcr.cs" />
+    <Compile Include="RdsModes\RdsPatchNative.cs" />
+    <Compile Include="RdsReader.cs" />
+    <Compile Include="ClipDatabase.cs" />
+    <Compile Include="RdsValue.cs" />
+    <Compile Include="Util\MusicBrainzUtils.cs" />
+    <Compile Include="Util\TuneGenieCache.cs" />
+    <Compile Include="Util\TuneGenieItem.cs" />
+    <EmbeddedResource Include="Components\ClipGrid.resx">
+      <DependentUpon>ClipGrid.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Components\CorrectNoDelimiterForm.resx">
+      <DependentUpon>CorrectNoDelimiterForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Components\ExportStatsDialog.resx">
+      <DependentUpon>ExportStatsDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Components\RebuildDatabaseDialog.resx">
+      <DependentUpon>RebuildDatabaseDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Components\ScrollableDialog.resx">
+      <DependentUpon>ScrollableDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Components\StationBrandingsEditor.resx">
+      <DependentUpon>StationBrandingsEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Components\TimeSpanChooser.resx">
+      <DependentUpon>TimeSpanChooser.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Components\TransportControls.resx">
+      <DependentUpon>TransportControls.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Components\WorkerDialog.resx">
+      <DependentUpon>WorkerDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EnviornmentPicker.resx">
+      <DependentUpon>EnviornmentPicker.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainEditor.resx">
+      <DependentUpon>MainEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainMenu.resx">
+      <DependentUpon>MainMenu.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\LibSDR\RomanPort.LibSDR.UI\RomanPort.LibSDR.UI.csproj">
+      <Project>{48dde04c-1f7f-40b3-8a37-3ca5861ab44c}</Project>
+      <Name>RomanPort.LibSDR.UI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\LibSDR\RomanPort.LibSDR\RomanPort.LibSDR.csproj">
+      <Project>{7d42bdb0-f186-4a2d-81f5-fb98e3d0b0aa}</Project>
+      <Name>RomanPort.LibSDR</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\IQArchiveManager.Common\IQArchiveManager.Common.csproj">
+      <Project>{86b79e51-81ef-4504-a6eb-4b714f0210c3}</Project>
+      <Name>IQArchiveManager.Common</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
