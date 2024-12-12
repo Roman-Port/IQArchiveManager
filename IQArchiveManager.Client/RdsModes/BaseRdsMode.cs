@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace IQArchiveManager.Client.RdsModes
 {
@@ -12,6 +13,13 @@ namespace IQArchiveManager.Client.RdsModes
         public abstract RdsModeId Id { get; }
 
         public abstract string Label { get; }
+
+        public virtual bool HasSetupWindow => false;
+
+        public virtual void ShowSetupWindow()
+        {
+            throw new NotSupportedException();
+        }
 
         public virtual bool TryParse(string rt, out string trackTitle, out string trackArtist, out string stationName, bool fast)
         {

@@ -15,17 +15,17 @@ namespace IQArchiveManager.Client.Components
 {
     public partial class RebuildDatabaseDialog : Form
     {
-        public RebuildDatabaseDialog(IQEnviornment iqEnv)
+        public RebuildDatabaseDialog(ClipDatabase db)
         {
-            this.iqEnv = iqEnv;
+            this.db = db;
             InitializeComponent();
         }
 
-        private IQEnviornment iqEnv;
+        private ClipDatabase db;
 
         private void RebuildDatabaseDialog_Load(object sender, EventArgs e)
         {
-            scanDirList.Items.Add(iqEnv.IqaDir);
+            scanDirList.Items.Add(db.Enviornment.IqaDir);
         }
 
         private void btnRebuild_Click(object sender, EventArgs e)
@@ -59,34 +59,34 @@ namespace IQArchiveManager.Client.Components
             }).ShowDialog();
 
             //Find
-            string missingInDb = RebuildHelperFindMissing(iqEnv.Db.Clips, loaded);
-            string missingOnDisk = optRemoveLost.Checked ? RebuildHelperFindMissing(loaded, iqEnv.Db.Clips) : "[Unchecked; Disabled by user]";
+            string missingInDb = RebuildHelperFindMissing(db.Clips, loaded);
+            string missingOnDisk = optRemoveLost.Checked ? RebuildHelperFindMissing(loaded, db.Clips) : "[Unchecked; Disabled by user]";
 
             //Create dialog box
-            string body = $"Database rebuild complete. The following inconsistencies were found. Would you like to apply changes?\n\nFILES MISSING IN DATABASE: (to be added to database)\n{missingInDb}\n\nFILES MISSING ON DISK: (to be removed from database)\n{missingOnDisk}\n\n{iqEnv.Db.Clips.Count} IN DATABASE - {loaded.Length} FOUND ON DISK";
+            string body = $"Database rebuild complete. The following inconsistencies were found. Would you like to apply changes?\n\nFILES MISSING IN DATABASE: (to be added to database)\n{missingInDb}\n\nFILES MISSING ON DISK: (to be removed from database)\n{missingOnDisk}\n\n{db.Clips.Count} IN DATABASE - {loaded.Length} FOUND ON DISK";
             if (new ScrollableDialog("Database Rebuild Completed", body.Replace("\n", "\r\n")).ShowDialog() == DialogResult.Yes)
             {
                 //Depending on the mode, update the clips
                 if (optRemoveLost.Checked)
                 {
                     //Simply remove and replace all
-                    iqEnv.Db.Clips.Clear();
-                    iqEnv.Db.Clips.AddRange(loaded);
+                    db.Clips.Clear();
+                    db.Clips.AddRange(loaded);
                 } else
                 {
                     //Loop through and UPDATE values
-                    for(int i = 0; i < iqEnv.Db.Clips.Count; i++)
+                    for(int i = 0; i < db.Clips.Count; i++)
                     {
                         foreach (var f in loaded)
                         {
-                            if (iqEnv.Db.Clips[i].Id == f.Id)
-                                iqEnv.Db.Clips[i] = f;
+                            if (db.Clips[i].Id == f.Id)
+                                db.Clips[i] = f;
                         }
                     }
                 }
                 
                 //Save to disk
-                iqEnv.Db.Save();
+                db.Save();
             }
 
             //Close this

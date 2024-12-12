@@ -34,17 +34,10 @@ namespace IQArchiveManager.Client
         private const int PACKETS_PER_BUFFER = 65536;
         private const int RDS_FRAME_NUMBER_SCALE = 10;
 
-        public RdsReader(ClipDatabase db)
+        public RdsReader(BaseRdsMode[] rdsModes)
         {
-            //Create RDS modes
-            rdsModes = new BaseRdsMode[]
-            {
-                new RdsPatchNative(),
-                new RdsPatchKzcr(db),
-                new RdsPatchKzcrLegacy(db),
-                new RdsPatchCumulus(),
-                new RdsPatchNoDelimiters(db)
-            };
+            //Set
+            this.rdsModes = rdsModes;
 
             //Set up decoder
             decoder = new RdsClient();

@@ -240,7 +240,7 @@ namespace IQArchiveManager.Client.RdsModes
             {
                 if (groupStartSample == -1)
                     groupStartSample = tokens[i].first;
-                if (tokens[i].value == "by" || tokens[i].value == "REAL" || tokens[i].value == "ROCK" || tokens[i].value == "Z103") // Not sure how much detecting "REAL ROCK Z103" helps
+                if (tokens[i].value == "by")
                 {
                     if (group.Length != 0)
                         groupedTokens.Add(new RdsValue<string>(tokens[i].last, group.TrimEnd(' ')));

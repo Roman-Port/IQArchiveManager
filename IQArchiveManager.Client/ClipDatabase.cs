@@ -12,7 +12,7 @@ namespace IQArchiveManager.Client
 {
     public class ClipDatabase
     {
-        public ClipDatabase(string filename)
+        public ClipDatabase(string filename = null)
         {
             this.filename = filename;
             if (File.Exists(filename))
@@ -24,8 +24,21 @@ namespace IQArchiveManager.Client
         private string filename;
         private DbRoot db;
 
+        public string DatabaseFilename => filename;
         public List<TrackClipInfo> Clips => db.Clips;
         public Dictionary<string, JObject> PersistentData => db.Persistent;
+        public IQEnviornment Enviornment => db.Enviornment;
+        public DateTime CreationDate
+        {
+            get
+            {
+                //If it is set, return it. Otherwise calculate it (for old instances)
+                if (db.CreatedAt == DateTime.MinValue)
+                    CalculateCreatedAt();
+
+                return db.CreatedAt;
+            }
+        }
 
         private static DbRoot ReadDatabase(string json)
         {
@@ -114,6 +127,10 @@ namespace IQArchiveManager.Client
 
         public void Save()
         {
+            //We shouldn't ever call this if no save is loaded but confirm this is the case
+            if (filename == null)
+                throw new Exception("Attempted to save when no filename is yet set.");
+
             //Delete backup
             string backupFilename = filename + ".bak";
             if (File.Exists(backupFilename))
@@ -127,6 +144,25 @@ namespace IQArchiveManager.Client
             File.WriteAllText(filename, JsonConvert.SerializeObject(db));
         }
 
+        /// <summary>
+        /// Calculates a new created at time by finding the earliest clip.
+        /// Older databases didn't have this set.
+        /// </summary>
+        private void CalculateCreatedAt()
+        {
+            //Abort if there are no clips.
+            if (Clips.Count == 0)
+                return;
+
+            //Find oldest
+            DateTime oldest = DateTime.MaxValue;
+            foreach (var c in Clips)
+                oldest = new DateTime(Math.Min(oldest.Ticks, c.Time.Ticks));
+
+            //Set
+            db.CreatedAt = oldest;
+        }
+
         class DbRoot
         {
             [JsonProperty("clips")]
@@ -134,6 +170,12 @@ namespace IQArchiveManager.Client
 
             [JsonProperty("persistent")]
             public Dictionary<string, JObject> Persistent { get; set; } = new Dictionary<string, JObject>();
+
+            [JsonProperty("enviornment")]
+            public IQEnviornment Enviornment { get; set; } = new IQEnviornment();
+
+            [JsonProperty("created_at")]
+            public DateTime CreatedAt { get; set; } = DateTime.MinValue;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using IQArchiveManager.Client.Db;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,22 +11,29 @@ namespace IQArchiveManager.Client
 {
     public class IQEnviornment
     {
-        public IQEnviornment(string iqaDir, string dbPath, string editDir, string moveDir)
-        {
-            IqaDir = iqaDir;
-            DbPath = dbPath;
-            EditDir = editDir;
-            MoveDir = moveDir;
-            db = new ClipDatabase(DbPath);
-        }
+        // Here for old code
 
-        public string IqaDir { get; set; }
-        public string DbPath { get; set; }
-        public string EditDir { get; set; }
-        public string MoveDir { get; set; }
-        public ClipDatabase Db { get => db; }
+        [JsonIgnore]
+        public string IqaDir => IqaDirs.SelectedValue;
 
-        private ClipDatabase db;
+        [JsonIgnore]
+        public string EditDir => EditDirs.SelectedValue;
+
+        [JsonIgnore]
+        public string MoveDir => MoveDirs.SelectedValue;
+
+        //
+
+        [JsonProperty("iqa")]
+        public EnviornmentPath IqaDirs { get; set; } = new EnviornmentPath();
+
+        [JsonProperty("edit")]
+        public EnviornmentPath EditDirs { get; set; } = new EnviornmentPath();
+
+        [JsonProperty("move")]
+        public EnviornmentPath MoveDirs { get; set; } = new EnviornmentPath();
+
+        // Util
 
         public bool GetIqFileById(string id, out string filename)
         {

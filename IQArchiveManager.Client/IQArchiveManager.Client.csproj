@@ -139,6 +139,7 @@
     <Compile Include="Components\WorkerDialog.Designer.cs">
       <DependentUpon>WorkerDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="Db\EnviornmentPath.cs" />
     <Compile Include="EnviornmentPicker.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -177,6 +178,7 @@
     <Compile Include="ClipDatabase.cs" />
     <Compile Include="RdsValue.cs" />
     <Compile Include="Util\MusicBrainzUtils.cs" />
+    <Compile Include="Util\StorageFormattingUtils.cs" />
     <Compile Include="Util\TuneGenieCache.cs" />
     <Compile Include="Util\TuneGenieItem.cs" />
     <EmbeddedResource Include="Components\ClipGrid.resx">

@@ -25,10 +25,10 @@ namespace IQArchiveManager.Client
 {
     public unsafe partial class MainEditor : Form
     {
-        public MainEditor(IQEnviornment iqEnv)
+        public MainEditor(ClipDatabase db, BaseRdsMode[] rdsModes)
         {
-            this.iqEnv = iqEnv;
-            rds = new RdsReader(iqEnv.Db);
+            this.db = db;
+            rds = new RdsReader(rdsModes);
             InitializeComponent();
         }
 
@@ -196,7 +196,7 @@ namespace IQArchiveManager.Client
             fftBuffer.Dispose();
         }
 
-        private IQEnviornment iqEnv;
+        private ClipDatabase db;
 
         private FileInfo wavFile;
         private FileInfo infoFile;
@@ -252,7 +252,7 @@ namespace IQArchiveManager.Client
             btnFileDelete.Enabled = editedClipsList.Items.Count == 0;
 
             //Show duplicate clips in the grid
-            clipGrid1.AddClips(iqEnv.Db.Clips.Where(x => x.Station.ToUpper() == inputCall.Text.ToUpper() && x.Artist.ToUpper() == inputArtist.Text.ToUpper() && x.Title.ToUpper() == inputTitle.Text.ToUpper()), true);
+            clipGrid1.AddClips(db.Clips.Where(x => x.Station.ToUpper() == inputCall.Text.ToUpper() && x.Artist.ToUpper() == inputArtist.Text.ToUpper() && x.Title.ToUpper() == inputTitle.Text.ToUpper()), true);
 
             //Open
             inputReader = new PreProcessorFileReader(infoFile.FullName);
@@ -347,7 +347,7 @@ namespace IQArchiveManager.Client
                 FlagRds = inputFlagRds.Checked,
                 Sha256 = null,
                 Time = time,
-                Id = iqEnv.Db.GetNewId(inputCall.Text, time),
+                Id = db.GetNewId(inputCall.Text, time),
                 OriginalFileSize = wavFile.Length,
                 SampleRate = header.sampleRate,
                 RdsParsed = matchedRds == null ? null : Convert.ToBase64String(Encoding.ASCII.GetBytes(matchedRds)),
@@ -378,7 +378,7 @@ namespace IQArchiveManager.Client
             File.WriteAllText(postFile.FullName, JsonConvert.SerializeObject(addedEdits));
 
             //Add to clip database
-            iqEnv.Db.AddClip(clip);
+            db.AddClip(clip);
 
             //Partially reset metadata
             inputArtist.Text = "";
@@ -477,7 +477,7 @@ namespace IQArchiveManager.Client
 
             //Show duplicate clips in the grid
             clipGrid1.AddClips(
-                iqEnv.Db.Clips.Where(
+                db.Clips.Where(
                     x => x.Station.ToUpper() == inputCall.Text.ToUpper() &&
                     x.Artist.ToUpper() == GetEntryArtist().ToUpper() &&
                     x.Title.ToUpper() == GetEntryTitle().ToUpper()
@@ -593,13 +593,13 @@ namespace IQArchiveManager.Client
         {
             if (file == null || !file.Exists)
                 return;
-            File.Move(file.FullName, file.FullName.Replace(iqEnv.EditDir, iqEnv.MoveDir));
+            File.Move(file.FullName, file.FullName.Replace(db.Enviornment.EditDir, db.Enviornment.MoveDir));
         }
 
         public void OpenNextFile()
         {
             //Get list of files in working dir
-            string[] files = Directory.GetFiles(iqEnv.EditDir);
+            string[] files = Directory.GetFiles(db.Enviornment.EditDir);
 
             //Loop through and look for files
             foreach(var f in files)

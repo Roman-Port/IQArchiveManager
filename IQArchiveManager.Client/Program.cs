@@ -16,7 +16,7 @@ namespace IQArchiveManager.Client
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new EnviornmentPicker());
+            Application.Run(new MainMenu());
         }
     }
 }

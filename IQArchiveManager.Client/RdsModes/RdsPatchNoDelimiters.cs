@@ -1,8 +1,11 @@
-﻿using System;
+﻿using IQArchiveManager.Client.Components;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace IQArchiveManager.Client.RdsModes
 {
@@ -11,20 +14,41 @@ namespace IQArchiveManager.Client.RdsModes
         public RdsPatchNoDelimiters(ClipDatabase db)
         {
             this.db = db;
+            config = db.GetPersistentStore("PATHCER_NO_DELIMITERS");
         }
 
         private readonly ClipDatabase db;
+        private readonly JObject config;
 
         public override string Label => "No Delimiters";
         public override RdsModeId Id => RdsModeId.NO_DELIMITERS;
-
-        public static string[] BRANDING_REMOVAL = new string[0];
+        private JArray Brandings
+        {
+            get
+            {
+                if (!config.ContainsKey("brandings"))
+                    config.Add("brandings", new JArray());
+                return (JArray)config["brandings"];
+            }
+        }
 
         private static readonly ushort[] TARGET_PIS = new ushort[]
         {
             0x3C0C,
             0x4F23
         };
+
+        public override bool HasSetupWindow => true;
+
+        public override void ShowSetupWindow()
+        {
+            StationBrandingsEditor editor = new StationBrandingsEditor();
+            if (config.ContainsKey("brandings"))
+                editor.Brandings = config["brandings"].ToObject<string[]>();
+            editor.ShowDialog();
+            config.Remove("brandings");
+            config.Add("brandings", new JArray(editor.Brandings));
+        }
 
         public override bool IsRecommended(List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
         {
@@ -46,8 +70,9 @@ namespace IQArchiveManager.Client.RdsModes
             {
                 //Search for and remove branding
                 stripped = f.value;
-                foreach (var b in BRANDING_REMOVAL)
+                foreach (var branding in Brandings)
                 {
+                    string b = ((string)branding);
                     if (stripped.StartsWith(b))
                         stripped = stripped.Substring(b.Length);
                     if (stripped.EndsWith(b))
