@@ -5,47 +5,68 @@ using System.Text;
 
 namespace IQArchiveManager.Common.IO.RDS
 {
-    public class RdsSerializer
+    public class RdsSerializer : IDisposable
     {
         public RdsSerializer()
         {
-
+            //Write header
+            stream.WriteByte(1); // Version major
+            stream.WriteByte(1); // Version minor
+            stream.WriteByte(0); // Reserved
+            stream.WriteByte(0); // Reserved
         }
 
-        private readonly List<RdsPacket> packets = new List<RdsPacket>();
+        private readonly MemoryStream stream = new MemoryStream();
+        private readonly byte[] buffer = new byte[8192];
 
-        public void Write(RdsPacket packet)
+        public void WriteChunk(uint timestamp, byte[] bits, int bitCount)
         {
-            packets.Add(packet);
+            //Make sure at least one bit is supplied
+            if (bitCount <= 0)
+                return;
+
+            //Calculate number of bytes these will fill
+            int blockSize = (bitCount + 7) / 8;
+
+            //Check to make sure it'll fit
+            if (blockSize >= buffer.Length || bitCount > ushort.MaxValue)
+                throw new Exception($"Block of RDS bits is too large.");
+
+            //Clear out buffer
+            for (int i = 0; i < blockSize; i++)
+                buffer[i] = 0;
+
+            //Pack bits into bytes
+            int posBit = 0;
+            int posByte = 0;
+            for (int i = 0; i < bitCount; i++)
+            {
+                //Write
+                buffer[posByte] |= (byte)((bits[i] & 1) << posBit);
+
+                //Update counter
+                posBit++;
+                if (posBit == 8)
+                {
+                    posBit = 0;
+                    posByte++;
+                }
+            }
+
+            //Write timestamp + size + payload to file
+            stream.Write(BitConverter.GetBytes(timestamp), 0, 4);
+            stream.Write(BitConverter.GetBytes((ushort)bitCount), 0, 2);
+            stream.Write(buffer, 0, blockSize);
         }
 
         public byte[] Serialize()
         {
-            using (MemoryStream ms = new MemoryStream())
-            {
-                //Write header
-                ms.WriteByte(0); // Version major
-                ms.WriteByte(1); // Version minor
-                ms.WriteByte(0); // Reserved
-                ms.WriteByte(0); // Reserved
+            return stream.ToArray();
+        }
 
-                //Encode packets
-                foreach (var p in packets)
-                {
-                    //Get flags for modification
-                    RdsFlags flags = p.flags;
-
-                    //Spanning packets isn't implemented yet, so make sure all packets have the end of chunk flag set
-                    flags |= RdsFlags.END_OF_CHUNK;
-
-                    //Write
-                    ms.Write(BitConverter.GetBytes(p.timestamp), 0, 4);
-                    ms.WriteByte((byte)flags);
-                    ms.Write(BitConverter.GetBytes(p.frame), 0, 8);
-                }
-
-                return ms.ToArray();
-            }
+        public void Dispose()
+        {
+            stream.Dispose();
         }
     }
 }

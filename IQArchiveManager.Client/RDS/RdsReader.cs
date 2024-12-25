@@ -1,5 +1,5 @@
 ﻿using IQArchiveManager.Client.Pre;
-using IQArchiveManager.Client.RdsModes;
+using IQArchiveManager.Client.RDS.Modes;
 using IQArchiveManager.Common.IO.RDS;
 using RomanPort.LibSDR.Components.Digital.RDS.Client;
 using System;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IQArchiveManager.Client
+namespace IQArchiveManager.Client.RDS
 {
     public delegate void RdsReader_ProgressEventArgs(int progress, int max);
     public delegate void RdsReader_StatusEventArgs(bool ready);
@@ -132,24 +132,22 @@ namespace IQArchiveManager.Client
             //Create reader on it
             RdsDeserializer reader = new RdsDeserializer(stream);
 
-            //Read until end
-            RdsPacket? packet = reader.ReadPacket();
-            while (packet != null)
+            //Read out bits and push into bit decoder
+            RdsBlockDecoder bitDecoder = new RdsBlockDecoder();
+            uint timestamp;
+            byte bit;
+            RdsPacket? packet;
+            while (reader.ReadBit(out timestamp, out bit))
             {
-                //Update state
-                latestSample = (long)packet.Value.timestamp * RDS_FRAME_NUMBER_SCALE;
-                latestFlags = packet.Value.flags;
+                //Decode
+                packet = bitDecoder.Process(bit, timestamp);
 
-                //Decode packet
-                if ((latestFlags & RdsFlags.BLOCK_A_VALID) == RdsFlags.BLOCK_A_VALID &&
-                    (latestFlags & RdsFlags.BLOCK_B_VALID) == RdsFlags.BLOCK_B_VALID &&
-                    (latestFlags & RdsFlags.BLOCK_C_VALID) == RdsFlags.BLOCK_C_VALID &&
-                    (latestFlags & RdsFlags.BLOCK_D_VALID) == RdsFlags.BLOCK_D_VALID
-                )
+                //If got a result, push into decoder
+                if (packet != null)
+                {
+                    latestSample = (long)timestamp * RDS_FRAME_NUMBER_SCALE;
                     decoder.ProcessFrame(packet.Value.frame);
-
-                //Read next
-                packet = reader.ReadPacket();
+                }
             }
 
             //Finish

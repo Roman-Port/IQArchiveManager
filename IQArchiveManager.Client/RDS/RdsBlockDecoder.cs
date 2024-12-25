@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace IQArchiveManager.Server.Pre
+namespace IQArchiveManager.Client.RDS
 {
     // Modified + ported version of SDR++ RDS decoder
     class RdsBlockDecoder
@@ -55,89 +55,91 @@ namespace IQArchiveManager.Server.Pre
         private const int DATA_LEN = 16;
         private const int POLY_LEN = 10;
 
-        public void Process(byte[] symbols, int count, uint timestamp, List<RdsPacket> output)
+        public RdsPacket? Process(byte symbol, uint timestamp)
         {
-            for (int i = 0; i < count; i++)
+            // Shift in the bit
+            shiftReg <<= 1;
+            shiftReg &= 0x3FFFFFF;
+            shiftReg |= (uint)(symbol & 1);
+
+            // Skip if we need to shift in new data
+            if (--skip > 0) { return null; }
+
+            // Calculate the syndrome and update sync status
+            ushort syn = calcSyndrome(shiftReg);
+            bool knownSyndrome = SYNDROMES.TryGetValue(syn, out BlockType synIt);
+            if (!knownSyndrome)
+                SetOutputFlag(RdsFlags.CONTIGUOUS, false);
+            sync = clamp(knownSyndrome ? ++sync : --sync, 0, 4);
+
+            // If we're still no longer in sync, try to resync
+            if (sync == 0) { return null; }
+
+            // Figure out which block we've got
+            BlockType type;
+            if (knownSyndrome)
             {
-                // Shift in the bit
-                shiftReg <<= 1;
-                shiftReg &= 0x3FFFFFF;
-                shiftReg |= (uint)(symbols[i] & 1);
-
-                // Skip if we need to shift in new data
-                if (--skip > 0) { continue; }
-
-                // Calculate the syndrome and update sync status
-                ushort syn = calcSyndrome(shiftReg);
-                bool knownSyndrome = SYNDROMES.TryGetValue(syn, out BlockType synIt);
-                if (!knownSyndrome)
-                    SetOutputFlag(RdsFlags.CONTIGUOUS, false);
-                sync = clamp(knownSyndrome ? ++sync : --sync, 0, 4);
-
-                // If we're still no longer in sync, try to resync
-                if (sync == 0) { continue; }
-
-                // Figure out which block we've got
-                BlockType type;
-                if (knownSyndrome)
-                {
-                    type = SYNDROMES[syn];
-                }
-                else
-                {
-                    type = (BlockType)(((int)lastType + 1) % (int)BlockType._BLOCK_TYPE_COUNT);
-                }
-
-                // Save block while correcting errors (NOT YET) <- idk why the "not yet is here", TODO: find why
-                uint block = correctErrors(shiftReg, type, out bool isAvailable, out bool correctionApplied);
-
-                //Check if we need to reset the state
-                if (type == BlockType.BLOCK_TYPE_A)
-                {
-                    submitted = false;
-                    corrected = false;
-                }
-
-                //Set corrected flag
-                corrected = corrected || correctionApplied;
-
-                //Switch on type
-                if (type == BlockType.BLOCK_TYPE_A)
-                {
-                    blocks[0] = block;
-                    SetOutputFlag(RdsFlags.BLOCK_A_VALID, isAvailable);
-                } else if (type == BlockType.BLOCK_TYPE_B && lastType == BlockType.BLOCK_TYPE_A && !submitted)
-                {
-                    blocks[1] = block;
-                    SetOutputFlag(RdsFlags.BLOCK_B_VALID, isAvailable);
-                }
-                else if ((type == BlockType.BLOCK_TYPE_C || type == BlockType.BLOCK_TYPE_CP) && lastType == BlockType.BLOCK_TYPE_B && !submitted)
-                {
-                    blocks[2] = block;
-                    SetOutputFlag(RdsFlags.BLOCK_C_VALID, isAvailable);
-                }
-                else if (type == BlockType.BLOCK_TYPE_D && (lastType == BlockType.BLOCK_TYPE_C || lastType == BlockType.BLOCK_TYPE_CP) && !submitted)
-                {
-                    blocks[3] = block;
-                    SetOutputFlag(RdsFlags.BLOCK_D_VALID, isAvailable);
-
-                    //Submit completed frame
-                    SetOutputFlag(RdsFlags.CORRECTED, corrected);
-                    output.Add(SubmitFrame(timestamp));
-
-                    //Set state machine
-                    SetOutputFlag(RdsFlags.CONTIGUOUS, true);
-                    submitted = true;
-                } else
-                {
-                    //Out of order
-                    SetOutputFlag(RdsFlags.CONTIGUOUS, false);
-                }
-
-                //Skip to next block
-                lastType = type;
-                skip = BLOCK_LEN;
+                type = SYNDROMES[syn];
             }
+            else
+            {
+                type = (BlockType)(((int)lastType + 1) % (int)BlockType._BLOCK_TYPE_COUNT);
+            }
+
+            // Save block while correcting errors (NOT YET) <- idk why the "not yet is here", TODO: find why
+            uint block = correctErrors(shiftReg, type, out bool isAvailable, out bool correctionApplied);
+
+            //Check if we need to reset the state
+            if (type == BlockType.BLOCK_TYPE_A)
+            {
+                submitted = false;
+                corrected = false;
+            }
+
+            //Set corrected flag
+            corrected = corrected || correctionApplied;
+
+            //Switch on type
+            RdsPacket? result = null;
+            if (type == BlockType.BLOCK_TYPE_A)
+            {
+                blocks[0] = block;
+                SetOutputFlag(RdsFlags.BLOCK_A_VALID, isAvailable);
+            }
+            else if (type == BlockType.BLOCK_TYPE_B && lastType == BlockType.BLOCK_TYPE_A && !submitted)
+            {
+                blocks[1] = block;
+                SetOutputFlag(RdsFlags.BLOCK_B_VALID, isAvailable);
+            }
+            else if ((type == BlockType.BLOCK_TYPE_C || type == BlockType.BLOCK_TYPE_CP) && lastType == BlockType.BLOCK_TYPE_B && !submitted)
+            {
+                blocks[2] = block;
+                SetOutputFlag(RdsFlags.BLOCK_C_VALID, isAvailable);
+            }
+            else if (type == BlockType.BLOCK_TYPE_D && (lastType == BlockType.BLOCK_TYPE_C || lastType == BlockType.BLOCK_TYPE_CP) && !submitted)
+            {
+                blocks[3] = block;
+                SetOutputFlag(RdsFlags.BLOCK_D_VALID, isAvailable);
+
+                //Submit completed frame
+                SetOutputFlag(RdsFlags.CORRECTED, corrected);
+                result = SubmitFrame(timestamp);
+
+                //Set state machine
+                SetOutputFlag(RdsFlags.CONTIGUOUS, true);
+                submitted = true;
+            }
+            else
+            {
+                //Out of order
+                SetOutputFlag(RdsFlags.CONTIGUOUS, false);
+            }
+
+            //Skip to next block
+            lastType = type;
+            skip = BLOCK_LEN;
+
+            return result;
         }
 
         private void SetOutputFlag(RdsFlags flag, bool set)

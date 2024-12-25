@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IQArchiveManager.Client.RdsModes
+namespace IQArchiveManager.Client.RDS.Modes
 {
     public static class PatchHelper
     {

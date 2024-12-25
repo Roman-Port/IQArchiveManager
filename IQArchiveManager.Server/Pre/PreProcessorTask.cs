@@ -63,7 +63,6 @@ namespace IQArchiveManager.Server.Pre
             //Create RDS bit decoder
             float sampleRateScale = 20000.0f / inputReader.SampleRate;
             long totalSamplesRead = 0;
-            RdsBlockDecoder rdsDec = new RdsBlockDecoder();
             RdsSerializer rdsEnc = new RdsSerializer();
 
             //Create output buffers
@@ -146,17 +145,9 @@ namespace IQArchiveManager.Server.Pre
                     //Process native
                     native.Process(iqBufferPtr, outputAudioBufferPtr, out int audioOutCount, rdsBufferPtr, out int rdsOutCount, read);
 
-                    //Write audio
+                    //Write audio and RDS
                     outputAudioWriter.Write(outputAudioBuffer, 0, audioOutCount);
-
-                    //Push RDS bits into encoder
-                    blockFrames.Clear();
-                    uint rdsTimestamp = (uint)((totalSamplesRead * sampleRateScale) / RDS_FRAME_SCALE);
-                    rdsDec.Process(rdsBuffer, rdsOutCount, rdsTimestamp, blockFrames);
-
-                    //Write this block of frames to the output
-                    foreach (RdsPacket frame in blockFrames)
-                        rdsEnc.Write(frame);
+                    rdsEnc.WriteChunk((uint)((totalSamplesRead * sampleRateScale) / RDS_FRAME_SCALE), rdsBuffer, rdsOutCount);
                 }
             }
 
@@ -165,6 +156,7 @@ namespace IQArchiveManager.Server.Pre
 
             //Write all RDS frames
             byte[] serRds = rdsEnc.Serialize();
+            rdsEnc.Dispose();
             outputRdsWriter.Write(serRds, 0, serRds.Length);
 
             //Close

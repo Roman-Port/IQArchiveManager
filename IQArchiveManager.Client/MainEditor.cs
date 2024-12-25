@@ -1,6 +1,7 @@
 ﻿using Csv;
 using IQArchiveManager.Client.Pre;
-using IQArchiveManager.Client.RdsModes;
+using IQArchiveManager.Client.RDS;
+using IQArchiveManager.Client.RDS.Modes;
 using IQArchiveManager.Client.Util;
 using IQArchiveManager.Common;
 using NAudio.Wave;

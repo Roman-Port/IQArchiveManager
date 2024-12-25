@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IQArchiveManager.Client
+namespace IQArchiveManager.Client.RDS
 {
     public class RdsValue<T>
     {

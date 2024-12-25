@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static IQArchiveManager.Client.RdsReader;
+using static IQArchiveManager.Client.RDS.RdsReader;
 
-namespace IQArchiveManager.Client
+namespace IQArchiveManager.Client.RDS
 {
     public class RdsPatch
     {

@@ -1,6 +1,6 @@
 ﻿using IQArchiveManager.Client.Components;
 using IQArchiveManager.Client.Db;
-using IQArchiveManager.Client.RdsModes;
+using IQArchiveManager.Client.RDS.Modes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;

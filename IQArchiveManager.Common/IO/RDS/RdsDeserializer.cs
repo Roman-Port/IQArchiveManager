@@ -17,47 +17,67 @@ namespace IQArchiveManager.Common.IO.RDS
                 throw new Exception("Failed to read RDS header.");
 
             //Check version
-            if (buffer[0] != 0)
+            if (buffer[0] != 1)
                 throw new Exception("Unsupported RDS version.");
         }
 
         private readonly Stream stream;
-        private readonly byte[] buffer = new byte[8];
+        private readonly byte[] buffer = new byte[8192];
 
-        private bool inCombinedPacket = false; // True if the current packet is part of a larger one; Don't read the timestamp
         private uint lastTimestamp = 0;
+        private ushort bitsRemaining = 0; // Bits remaining in buffer
+        private int posByte = 0;
+        private int posBit = 0;
 
-        public RdsPacket? ReadPacket()
+        public bool ReadBit(out uint timestamp, out byte bit)
         {
-            //Read the timestamp or load depending on state
-            uint timestamp = lastTimestamp;
-            if (!inCombinedPacket)
+            //Check if we need to read a new chunk in
+            if (bitsRemaining <= 0)
             {
-                //Read timestamp from file
-                if (stream.Read(buffer, 0, 4) != 4)
-                    return null; // End of stream
-                timestamp = BitConverter.ToUInt32(buffer, 0);
+                //Read header
+                int headerLen = stream.Read(buffer, 0, 6);
+                if (headerLen == 0)
+                {
+                    timestamp = 0;
+                    bit = 0;
+                    return false; // End of stream
+                } else if (headerLen != 6)
+                {
+                    throw new Exception("RDS stream was desynced.");
+                }
+
+                //Extract info from header
+                lastTimestamp = BitConverter.ToUInt32(buffer, 0);
+                bitsRemaining = BitConverter.ToUInt16(buffer, 4);
+
+                //Calculate number of bytes these will fill
+                int blockSize = (bitsRemaining + 7) / 8;
+
+                //Read chunk in
+                if (stream.Read(buffer, 0, blockSize) != blockSize)
+                    throw new Exception("RDS stream reached end in the middle of a block. Stream was desynced.");
+
+                //Reset counters
+                posBit = 0;
+                posByte = 0;
             }
 
-            //Read flags
-            RdsFlags flags = (RdsFlags)stream.ReadByte();
+            //Decode bit
+            bit = (byte)((buffer[posByte] >> posBit) & 1);
 
-            //Read frame
-            if (stream.Read(buffer, 0, 8) != 8)
-                return null; // End of stream
-            ulong frame = BitConverter.ToUInt64(buffer, 0);
-
-            //Set up state machine for next packet
-            inCombinedPacket = (flags & RdsFlags.END_OF_CHUNK) != RdsFlags.END_OF_CHUNK;
-            lastTimestamp = timestamp;
-
-            //Wrap into frame
-            return new RdsPacket
+            //Update state
+            bitsRemaining--;
+            posBit++;
+            if (posBit == 8)
             {
-                timestamp = timestamp,
-                flags = flags,
-                frame = frame
-            };
+                posBit = 0;
+                posByte++;
+            }
+
+            //Set timestamp
+            timestamp = lastTimestamp;
+
+            return true;
         }
     }
 }

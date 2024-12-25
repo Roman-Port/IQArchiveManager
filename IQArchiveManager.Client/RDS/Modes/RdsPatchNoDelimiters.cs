@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace IQArchiveManager.Client.RdsModes
+namespace IQArchiveManager.Client.RDS.Modes
 {
     public class RdsPatchNoDelimiters : BaseRdsMode
     {

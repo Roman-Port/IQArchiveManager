@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Windows.Forms;
 
-namespace IQArchiveManager.Client.RdsModes
+namespace IQArchiveManager.Client.RDS.Modes
 {
     public class RdsPatchKzcr : PsParsedPatch
     {
