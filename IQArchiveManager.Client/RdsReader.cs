@@ -1,5 +1,6 @@
 ﻿using IQArchiveManager.Client.Pre;
 using IQArchiveManager.Client.RdsModes;
+using IQArchiveManager.Common.IO.RDS;
 using RomanPort.LibSDR.Components.Digital.RDS.Client;
 using System;
 using System.Collections.Generic;
@@ -22,6 +23,7 @@ namespace IQArchiveManager.Client
 
         private RdsClient decoder;
         private long latestSample;
+        private RdsFlags latestFlags;
 
         public event RdsReader_StatusEventArgs OnStatusChanged;
         public event RdsReader_ProgressEventArgs OnProgressUpdated;
@@ -50,7 +52,7 @@ namespace IQArchiveManager.Client
         public IReadOnlyList<RdsValue<string>> ParsedRtFrames => new List<RdsValue<string>>(rdsRtFrames);
         public IReadOnlyList<RdsValue<string>> RawRtFrames => new List<RdsValue<string>>(rdsRtFramesRaw);
 
-        public void Process(PreProcessorFileStreamReader stream)
+        public void Reset()
         {
             //Reset decoder
             decoder.Reset();
@@ -60,7 +62,33 @@ namespace IQArchiveManager.Client
 
             //Send event
             OnStatusChanged?.Invoke(false);
+        }
 
+        private void FinalizeLoad()
+        {
+            //Determine the best method of patching
+            BaseRdsMode patcher = null;
+            for (int i = 0; i < rdsModes.Length; i++)
+            {
+                if (!IsPatcherRecommended(rdsModes[i]))
+                    break;
+                patcher = rdsModes[i];
+            }
+
+            //Apply patch
+            SwitchPatcher(patcher);
+
+            //Send event
+            OnStatusChanged?.Invoke(true);
+        }
+
+        /// <summary>
+        /// Loads from stream using original "RDS" stream.
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <exception cref="Exception"></exception>
+        public void LoadV1(PreProcessorFileStreamReader stream)
+        {
             //Allocate buffer
             byte[] buffer = new byte[PACKETS_PER_BUFFER * PACKET_SIZE];
 
@@ -91,20 +119,41 @@ namespace IQArchiveManager.Client
                 }
             } while (stream.CurrentSegment < stream.SegmentCount);
 
-            //Determine the best method of patching
-            BaseRdsMode patcher = null;
-            for (int i = 0; i < rdsModes.Length; i++)
+            //Finish
+            FinalizeLoad();
+        }
+
+        /// <summary>
+        /// Loads using the new "RDS2" stream.
+        /// </summary>
+        /// <param name="stream"></param>
+        public void LoadV2(PreProcessorFileStreamReader stream)
+        {
+            //Create reader on it
+            RdsDeserializer reader = new RdsDeserializer(stream);
+
+            //Read until end
+            RdsPacket? packet = reader.ReadPacket();
+            while (packet != null)
             {
-                if (!IsPatcherRecommended(rdsModes[i]))
-                    break;
-                patcher = rdsModes[i];
+                //Update state
+                latestSample = (long)packet.Value.timestamp * RDS_FRAME_NUMBER_SCALE;
+                latestFlags = packet.Value.flags;
+
+                //Decode packet
+                if ((latestFlags & RdsFlags.BLOCK_A_VALID) == RdsFlags.BLOCK_A_VALID &&
+                    (latestFlags & RdsFlags.BLOCK_B_VALID) == RdsFlags.BLOCK_B_VALID &&
+                    (latestFlags & RdsFlags.BLOCK_C_VALID) == RdsFlags.BLOCK_C_VALID &&
+                    (latestFlags & RdsFlags.BLOCK_D_VALID) == RdsFlags.BLOCK_D_VALID
+                )
+                    decoder.ProcessFrame(packet.Value.frame);
+
+                //Read next
+                packet = reader.ReadPacket();
             }
 
-            //Apply patch
-            SwitchPatcher(patcher);
-
-            //Send event
-            OnStatusChanged?.Invoke(true);
+            //Finish
+            FinalizeLoad();
         }
 
         public void SwitchPatcher(BaseRdsMode patcher)

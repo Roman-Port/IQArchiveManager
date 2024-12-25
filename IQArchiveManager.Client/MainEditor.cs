@@ -216,7 +216,6 @@ namespace IQArchiveManager.Client
 
         private RdsReader rds;
         private System.Windows.Forms.Timer rdsTimer;
-        private Thread rdsLoadThread;
 
         private TuneGenieCache tuneGenie;
 
@@ -267,9 +266,15 @@ namespace IQArchiveManager.Client
             //Set up transport controls
             transportControls.SetStreams(wavFile.LastWriteTime, inputReader.GetStreamByTag("AUDIO"), audioPlayer.Stream, fftStream);
 
-            //Read RDS
-            rdsLoadThread = new Thread(() => rds.Process(inputReader.GetStreamByTag("RDS")));
-            rdsLoadThread.Start();
+            //Read RDS -- Detect which version we are using
+            rds.Reset();
+            PreProcessorFileStreamReader rdsStream;
+            if (inputReader.TryGetStreamByTag("RDS", out rdsStream))
+                rds.LoadV1(rdsStream);
+            else if (inputReader.TryGetStreamByTag("RDS2", out rdsStream))
+                rds.LoadV2(rdsStream);
+            else
+                MessageBox.Show("No valid RDS stream found. Outdated client?", "No RDS", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
             //Create TuneGenie instance for fetching metadata
             tuneGenie = new TuneGenieCache(CalculateOffsetTime(0), CalculateOffsetTime(transportControls.StreamAudio.Length));

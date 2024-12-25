@@ -1,4 +1,5 @@
-﻿using IQArchiveManager.Server.Native;
+﻿using IQArchiveManager.Common.IO.RDS;
+using IQArchiveManager.Server.Native;
 using RomanPort.LibSDR.Components;
 using RomanPort.LibSDR.Components.Analog.Primitive;
 using RomanPort.LibSDR.Components.Digital.RDS.Client;
@@ -45,10 +46,7 @@ namespace IQArchiveManager.Server.Pre
             //Create streams
             PreProcessorFileStreamWriter outputAudioWriter = outputWriter.CreateStream("AUDIO");
             PreProcessorFileStreamWriter outputFftWriter = outputWriter.CreateStream("SPECTRUM_MAIN");
-            PreProcessorFileStreamWriter outputRdsWriter = outputWriter.CreateStream("RDS");
-
-            //Create temp stuff
-            int samplesSinceLastSegment = 0;
+            PreProcessorFileStreamWriter outputRdsWriter = outputWriter.CreateStream("RDS2");
 
             //Open WAV file
             FileStream inputFile = new FileStream(wavFilePath, FileMode.Open, FileAccess.Read);
@@ -65,9 +63,8 @@ namespace IQArchiveManager.Server.Pre
             //Create RDS bit decoder
             float sampleRateScale = 20000.0f / inputReader.SampleRate;
             long totalSamplesRead = 0;
-            List<byte[]> rdsFrames = new List<byte[]>();
-            long rdsFramesLen = 0;
-            RdsBlockDecoder rds = new RdsBlockDecoder();
+            RdsBlockDecoder rdsDec = new RdsBlockDecoder();
+            RdsSerializer rdsEnc = new RdsSerializer();
 
             //Create output buffers
             byte[] outputAudioBuffer = new byte[BUFFER_SIZE];
@@ -81,16 +78,17 @@ namespace IQArchiveManager.Server.Pre
             native.BasebandFilterCutoff = DEMOD_BW / 2;
             native.BasebandFilterTransition = DEMOD_BW * 0.2;
             native.FmDeviation = 85000;
-            native.MpxFilterCutoff = 62000;
-            native.MpxFilterTransition = 2000;
+            native.MpxFilterCutoff = 58000 + 6000;
+            native.MpxFilterTransition = 6000;
             native.AudioFilterCutoff = 16000;
             native.AudioFilterTransition = 3000;
             native.DeemphasisRate = 75;
             native.Init();
 
             //Loop
-            List<ulong> blockFrames = new List<ulong>();
+            List<RdsPacket> blockFrames = new List<RdsPacket>();
             int samplesToFftFrame = inputReader.SampleRate / FFTS_RATE;
+            int samplesSinceLastSegment = 0;
             fixed (byte* outputAudioBufferPtr = outputAudioBuffer)
             fixed (byte* rdsBufferPtr = rdsBuffer)
             {
@@ -153,15 +151,12 @@ namespace IQArchiveManager.Server.Pre
 
                     //Push RDS bits into encoder
                     blockFrames.Clear();
-                    rds.Process(rdsBuffer, rdsOutCount, blockFrames);
+                    uint rdsTimestamp = (uint)((totalSamplesRead * sampleRateScale) / RDS_FRAME_SCALE);
+                    rdsDec.Process(rdsBuffer, rdsOutCount, rdsTimestamp, blockFrames);
 
                     //Write this block of frames to the output
-                    foreach (ulong frame in blockFrames)
-                    {
-                        rdsFrames.Add(BitConverter.GetBytes((uint)((totalSamplesRead * sampleRateScale) / RDS_FRAME_SCALE)));
-                        rdsFrames.Add(BitConverter.GetBytes(frame));
-                        rdsFramesLen += 12;
-                    }
+                    foreach (RdsPacket frame in blockFrames)
+                        rdsEnc.Write(frame);
                 }
             }
 
@@ -169,10 +164,8 @@ namespace IQArchiveManager.Server.Pre
             native.Dispose();
 
             //Write all RDS frames
-            foreach(var f in rdsFrames)
-            {
-                outputRdsWriter.Write(f, 0, f.Length);
-            }
+            byte[] serRds = rdsEnc.Serialize();
+            outputRdsWriter.Write(serRds, 0, serRds.Length);
 
             //Close
             outputWriter.End();

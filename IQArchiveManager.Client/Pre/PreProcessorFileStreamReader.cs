@@ -9,7 +9,7 @@ namespace IQArchiveManager.Client.Pre
 {
     public delegate void PreProcessorFileStreamReader_Event(PreProcessorFileStreamReader reader);
     
-    public class PreProcessorFileStreamReader
+    public class PreProcessorFileStreamReader : Stream
     {
         public PreProcessorFileStreamReader(FileStream fs, string tag, long totalLen, long segmentTablePos)
         {
@@ -36,9 +36,14 @@ namespace IQArchiveManager.Client.Pre
 
         private const int OFFSET_TABLE_ENTRY_LEN = 8 + 4;
 
+        public string Tag => tag;
+
         public int SegmentPosition { get => currentSegmentPosition; set => currentSegmentPosition = value; }
+
         public int SegmentRemaining { get => segmentTableLengths[currentSegment] - currentSegmentPosition; }
+
         public int SegmentCount { get => (int)segmentTableLen; }
+
         public int CurrentSegment
         {
             get => currentSegment;
@@ -49,7 +54,8 @@ namespace IQArchiveManager.Client.Pre
                 OnSegmentChanged?.Invoke(this);
             }
         }
-        public long Position
+
+        public override long Position
         {
             get => currentSegment >= segmentTableLen ? Length : segmentTableVirtualPos[currentSegment] + currentSegmentPosition;
             set
@@ -68,7 +74,14 @@ namespace IQArchiveManager.Client.Pre
                 throw new Exception("Position is invalid.");
             }
         }
-        public long Length { get => totalLen; }
+
+        public override long Length { get => totalLen; }
+
+        public override bool CanRead => true;
+
+        public override bool CanSeek => true;
+
+        public override bool CanWrite => false;
 
         public void Open()
         {
@@ -107,6 +120,11 @@ namespace IQArchiveManager.Client.Pre
                 throw new Exception($"Expected final virtualPos ({virtualPos}) to match the totalLen ({totalLen})!");
         }
 
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            return Read(buffer, offset, count, true);
+        }
+
         public int Read(byte[] buffer, int offset, int length, bool spanSegments = true)
         {
             int read = 0;
@@ -141,6 +159,26 @@ namespace IQArchiveManager.Client.Pre
                     CurrentSegment++;
             }
             return read;
+        }
+
+        public override void Flush()
+        {
+            fs.Flush();
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            throw new NotSupportedException();
         }
     }
 }

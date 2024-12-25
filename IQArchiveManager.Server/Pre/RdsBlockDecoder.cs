@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IQArchiveManager.Common.IO.RDS;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -17,6 +18,9 @@ namespace IQArchiveManager.Server.Pre
         private int skip = 0;
         private BlockType lastType = BlockType.BLOCK_TYPE_A;
         private uint[] blocks = new uint[4];
+        private RdsFlags flags;
+        private bool submitted = false; // Reset at the start of every frame
+        private bool corrected = false; // Reset at the start of every frame; True if any frames were corrected
 
         private enum BlockType
         {
@@ -51,7 +55,7 @@ namespace IQArchiveManager.Server.Pre
         private const int DATA_LEN = 16;
         private const int POLY_LEN = 10;
 
-        public void Process(byte[] symbols, int count, List<ulong> output)
+        public void Process(byte[] symbols, int count, uint timestamp, List<RdsPacket> output)
         {
             for (int i = 0; i < count; i++)
             {
@@ -66,6 +70,8 @@ namespace IQArchiveManager.Server.Pre
                 // Calculate the syndrome and update sync status
                 ushort syn = calcSyndrome(shiftReg);
                 bool knownSyndrome = SYNDROMES.TryGetValue(syn, out BlockType synIt);
+                if (!knownSyndrome)
+                    SetOutputFlag(RdsFlags.CONTIGUOUS, false);
                 sync = clamp(knownSyndrome ? ++sync : --sync, 0, 4);
 
                 // If we're still no longer in sync, try to resync
@@ -83,25 +89,49 @@ namespace IQArchiveManager.Server.Pre
                 }
 
                 // Save block while correcting errors (NOT YET) <- idk why the "not yet is here", TODO: find why
-                bool isAvailable;
-                uint block = correctErrors(shiftReg, type, out isAvailable);
+                uint block = correctErrors(shiftReg, type, out bool isAvailable, out bool correctionApplied);
+
+                //Check if we need to reset the state
+                if (type == BlockType.BLOCK_TYPE_A)
+                {
+                    submitted = false;
+                    corrected = false;
+                }
+
+                //Set corrected flag
+                corrected = corrected || correctionApplied;
 
                 //Switch on type
                 if (type == BlockType.BLOCK_TYPE_A)
                 {
                     blocks[0] = block;
-                } else if (type == BlockType.BLOCK_TYPE_B && lastType == BlockType.BLOCK_TYPE_A)
+                    SetOutputFlag(RdsFlags.BLOCK_A_VALID, isAvailable);
+                } else if (type == BlockType.BLOCK_TYPE_B && lastType == BlockType.BLOCK_TYPE_A && !submitted)
                 {
                     blocks[1] = block;
+                    SetOutputFlag(RdsFlags.BLOCK_B_VALID, isAvailable);
                 }
-                else if ((type == BlockType.BLOCK_TYPE_C || type == BlockType.BLOCK_TYPE_CP) && lastType == BlockType.BLOCK_TYPE_B)
+                else if ((type == BlockType.BLOCK_TYPE_C || type == BlockType.BLOCK_TYPE_CP) && lastType == BlockType.BLOCK_TYPE_B && !submitted)
                 {
                     blocks[2] = block;
+                    SetOutputFlag(RdsFlags.BLOCK_C_VALID, isAvailable);
                 }
-                else if (type == BlockType.BLOCK_TYPE_D && (lastType == BlockType.BLOCK_TYPE_C || lastType == BlockType.BLOCK_TYPE_CP))
+                else if (type == BlockType.BLOCK_TYPE_D && (lastType == BlockType.BLOCK_TYPE_C || lastType == BlockType.BLOCK_TYPE_CP) && !submitted)
                 {
                     blocks[3] = block;
-                    output.Add(SubmitFrame());
+                    SetOutputFlag(RdsFlags.BLOCK_D_VALID, isAvailable);
+
+                    //Submit completed frame
+                    SetOutputFlag(RdsFlags.CORRECTED, corrected);
+                    output.Add(SubmitFrame(timestamp));
+
+                    //Set state machine
+                    SetOutputFlag(RdsFlags.CONTIGUOUS, true);
+                    submitted = true;
+                } else
+                {
+                    //Out of order
+                    SetOutputFlag(RdsFlags.CONTIGUOUS, false);
                 }
 
                 //Skip to next block
@@ -110,9 +140,17 @@ namespace IQArchiveManager.Server.Pre
             }
         }
 
-        private ulong SubmitFrame()
+        private void SetOutputFlag(RdsFlags flag, bool set)
         {
-            //Format
+            if (set)
+                flags = (RdsFlags)((int)flags | (1 << (int)flag));
+            else
+                flags = (RdsFlags)((int)flags & ~(1 << (int)flag));
+        }
+
+        private RdsPacket SubmitFrame(uint timestamp)
+        {
+            //Format the frame
             ulong output = 0;
             ushort block;
             int flipped;
@@ -131,7 +169,12 @@ namespace IQArchiveManager.Server.Pre
                 output |= (ulong)flipped << (i * 16);
             }
 
-            return output;
+            return new RdsPacket
+            {
+                timestamp = timestamp,
+                flags = flags,
+                frame = output
+            };
         }
 
         private int clamp(int input, int min, int max)
@@ -164,7 +207,7 @@ namespace IQArchiveManager.Server.Pre
             return syn;
         }
 
-        private uint correctErrors(uint block, BlockType type, out bool recovered)
+        private uint correctErrors(uint block, BlockType type, out bool recovered, out bool correctionApplied)
         {
             // Subtract the offset from block
             block ^= (uint)OFFSETS[type];
@@ -175,12 +218,14 @@ namespace IQArchiveManager.Server.Pre
 
             // Use the syndrome register to do error correction if errors are present
             byte errorFound = 0;
+            correctionApplied = false;
             if (syn != 0)
             {
                 for (int i = DATA_LEN - 1; i >= 0; i--)
                 {
                     // Check if the 5 leftmost bits are all zero
                     errorFound |= (byte)(((syn & 0b11111) == 0) ? 1 : 0);
+                    correctionApplied = correctionApplied || errorFound > 0;
 
                     // Write output
                     byte outBit = (byte)((syn >> (POLY_LEN - 1)) & 1);

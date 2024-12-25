@@ -48,9 +48,9 @@ namespace IQArchiveManager.Client.Pre
             }
         }
 
-        public PreProcessorFileStreamReader GetStreamByTag(string tag)
+        public bool TryGetStreamByTag(string tag, out PreProcessorFileStreamReader output)
         {
-            PreProcessorFileStreamReader output;
+            output = null;
             foreach (var s in streams)
             {
                 if (tag != s.tag)
@@ -59,8 +59,15 @@ namespace IQArchiveManager.Client.Pre
                 output = new PreProcessorFileStreamReader(stream, s.tag, s.totalLen, s.segmentTablePos);
                 output.Open();
                 openedFiles.Add(stream);
-                return output;
+                return true;
             }
+            return false;
+        }
+
+        public PreProcessorFileStreamReader GetStreamByTag(string tag)
+        {
+            if (TryGetStreamByTag(tag, out PreProcessorFileStreamReader output))
+                return output;
             throw new Exception("Stream not found.");
         }
 
