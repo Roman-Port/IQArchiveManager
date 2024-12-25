@@ -1,0 +1,6 @@
+[submodule "native/volk"]
+	path = native/volk
+	url = https://github.com/gnuradio/volk
+[submodule "native/dsp"]
+	path = native/dsp
+	url = https://github.com/AlexandreRouma/dsp

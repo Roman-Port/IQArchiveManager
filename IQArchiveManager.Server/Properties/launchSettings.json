@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "IQArchiveManager.Server": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:/Users/Roman/Desktop/IQ Transcoded/\""
+    }
+  }
+}

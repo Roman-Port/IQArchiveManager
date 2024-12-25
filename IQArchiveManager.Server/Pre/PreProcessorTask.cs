@@ -1,4 +1,5 @@
-﻿using RomanPort.LibSDR.Components;
+﻿using IQArchiveManager.Server.Native;
+using RomanPort.LibSDR.Components;
 using RomanPort.LibSDR.Components.Analog.Primitive;
 using RomanPort.LibSDR.Components.Digital.RDS.Client;
 using RomanPort.LibSDR.Components.Digital.RDS.Physical;
@@ -22,7 +23,7 @@ namespace IQArchiveManager.Server.Pre
         private string wavFilePath;
 
         private const int BUFFER_SIZE = 32768;
-        private const int DEMOD_BW = 200000;
+        private const int DEMOD_BW = 230000;
         private const int AUDIO_SAMPLE_RATE = 20000;
         private const int SCALED_FFT_SIZE = 1024;
         private const int FFT_SCALE_MULTIPLIER = 8;
@@ -57,127 +58,115 @@ namespace IQArchiveManager.Server.Pre
             UnsafeBuffer iqBuffer = UnsafeBuffer.Create(BUFFER_SIZE, out Complex* iqBufferPtr);
             UnsafeBuffer audioBuffer = UnsafeBuffer.Create(BUFFER_SIZE, out float* audioBufferPtr);
 
-            //Create IQ decimator
-            var iqFilterBuilder = new LowPassFilterBuilder(inputReader.SampleRate, DEMOD_BW / 2)
-                .SetAutomaticTapCount(DEMOD_BW * 0.2f, 60)
-                .SetWindow(WindowType.BlackmanHarris7);
-            IComplexFirFilter iqFilter = ComplexFirFilter.CreateFirFilter(iqFilterBuilder, iqFilterBuilder.GetDecimation(out float decimatedSampleRate));
-
-            //Create audio decimator
-            var audioFilterBuilder = new LowPassFilterBuilder(decimatedSampleRate, 16000)
-                .SetAutomaticTapCount(6000, 40)
-                .SetWindow(WindowType.BlackmanHarris7);
-            IRealFirFilter audioFilter = RealFirFilter.CreateFirFilter(audioFilterBuilder, audioFilterBuilder.GetDecimation(out float decimatedAudioRate));
-
-            //Create audio resampler
-            ArbitraryFloatResampler audioResampler = new ArbitraryFloatResampler(decimatedAudioRate, AUDIO_SAMPLE_RATE, BUFFER_SIZE);
-
-            //Create FM
-            FmBasebandDemodulator fm = new FmBasebandDemodulator(FmBasebandDemodulator.DEVIATION_BROADCAST);
-            fm.Configure(BUFFER_SIZE, decimatedSampleRate);
-
             //Create FFT
             FFTGenerator fft = new FFTGenerator(SCALED_FFT_SIZE * FFT_SCALE_MULTIPLIER, false);
             FFTSmoothener fftSmoothener = new FFTSmoothener(fft);
 
-            //Create RDS
+            //Create RDS bit decoder
             float sampleRateScale = 20000.0f / inputReader.SampleRate;
             long totalSamplesRead = 0;
             List<byte[]> rdsFrames = new List<byte[]>();
             long rdsFramesLen = 0;
-            RDSDecoder rds = new RDSDecoder();
-            rds.Configure(decimatedSampleRate);
-            rds.OnFrameDecoded += (ulong frame) =>
-            {
-                rdsFrames.Add(BitConverter.GetBytes((uint)((totalSamplesRead * sampleRateScale) / RDS_FRAME_SCALE)));
-                rdsFrames.Add(BitConverter.GetBytes(frame));
-                rdsFramesLen += 12;
-            };
+            RdsBlockDecoder rds = new RdsBlockDecoder();
 
             //Create output buffers
             byte[] outputAudioBuffer = new byte[BUFFER_SIZE];
+            byte[] rdsBuffer = new byte[BUFFER_SIZE];
             byte[] outputFftBuffer = new byte[SCALED_FFT_SIZE];
 
+            //Create native
+            IQAMPreNative native = new IQAMPreNative(BUFFER_SIZE);
+            native.InputSampleRate = inputReader.SampleRate;
+            native.AudioSampleRate = AUDIO_SAMPLE_RATE;
+            native.BasebandFilterCutoff = DEMOD_BW / 2;
+            native.BasebandFilterTransition = DEMOD_BW * 0.2;
+            native.FmDeviation = 85000;
+            native.MpxFilterCutoff = 62000;
+            native.MpxFilterTransition = 2000;
+            native.AudioFilterCutoff = 16000;
+            native.AudioFilterTransition = 3000;
+            native.DeemphasisRate = 75;
+            native.Init();
+
             //Loop
+            List<ulong> blockFrames = new List<ulong>();
             int samplesToFftFrame = inputReader.SampleRate / FFTS_RATE;
-            while (true)
+            fixed (byte* outputAudioBufferPtr = outputAudioBuffer)
+            fixed (byte* rdsBufferPtr = rdsBuffer)
             {
-                //Set status
-                status = $"PRE-PROCESSING - {((int)((inputReader.PositionSamples / (double)inputReader.LengthSamples) * 100)).ToString().PadLeft(2, '0')}% - {wavFilePath}";
-
-                //Read
-                int read = inputReader.Read(iqBufferPtr, Math.Min(inputReader.SampleRate - samplesSinceLastSegment, BUFFER_SIZE));
-                totalSamplesRead += read;
-                if (read == 0)
-                    break;
-
-                //Update and check if we went over
-                samplesSinceLastSegment += read;
-                if (samplesSinceLastSegment >= inputReader.SampleRate)
+                while (true)
                 {
-                    outputWriter.StartNewSegment();
-                    samplesSinceLastSegment = 0;
-                }
+                    //Set status
+                    status = $"PRE-PROCESSING - {((int)((inputReader.PositionSamples / (double)inputReader.LengthSamples) * 100)).ToString().PadLeft(2, '0')}% - {wavFilePath}";
 
-                //Process FFT
-                for (int i = 0; i < read; i++)
-                {
-                    //Check
-                    if (samplesToFftFrame == 0)
+                    //Read
+                    int read = inputReader.Read(iqBufferPtr, Math.Min(inputReader.SampleRate - samplesSinceLastSegment, BUFFER_SIZE));
+                    totalSamplesRead += read;
+                    if (read == 0)
+                        break;
+
+                    //Update and check if we went over
+                    samplesSinceLastSegment += read;
+                    if (samplesSinceLastSegment >= inputReader.SampleRate)
                     {
-                        //Write FFT frame
-                        float* power = fftSmoothener.ProcessFFT(out int fftBins);
-                        for (int b = 0; b < SCALED_FFT_SIZE; b++)
-                        {
-                            //Sum
-                            double max = 0;
-                            for (int s = 0; s < FFT_SCALE_MULTIPLIER; s++)
-                                max = Math.Max(max, -power[s]);
-                            power += FFT_SCALE_MULTIPLIER;
-
-                            //Write
-                            outputFftBuffer[b] = (byte)max;
-                        }
-
-                        //Write
-                        outputFftWriter.Write(outputFftBuffer, 0, SCALED_FFT_SIZE);
-
-                        //Reset state
-                        samplesToFftFrame = inputReader.SampleRate / FFTS_RATE;
+                        outputWriter.StartNewSegment();
+                        samplesSinceLastSegment = 0;
                     }
 
-                    //Add
-                    fft.AddSamples(iqBufferPtr + i, 1);
-                    samplesToFftFrame--;
-                }
-
-                //Decimate + filter samples
-                read = iqFilter.Process(iqBufferPtr, read);
-
-                //Demodulate
-                fm.Demodulate(iqBufferPtr, audioBufferPtr, read);
-
-                //Decode RDS
-                rds.Process(audioBufferPtr, read);
-
-                //Decimate + filter audio
-                read = audioFilter.Process(audioBufferPtr, read);
-
-                //Resample audio
-                audioResampler.Input(audioBufferPtr, read, 1);
-                do
-                {
-                    //Read
-                    read = audioResampler.Output(audioBufferPtr, BUFFER_SIZE, 1);
-
-                    //Convert
+                    //Process FFT
                     for (int i = 0; i < read; i++)
-                        outputAudioBuffer[i] = (byte)((Math.Max(Math.Min(audioBufferPtr[i] * 0.7f, 1), -1) * 127.5f) + 127.5f);
+                    {
+                        //Check
+                        if (samplesToFftFrame == 0)
+                        {
+                            //Write FFT frame
+                            float* power = fftSmoothener.ProcessFFT(out int fftBins);
+                            for (int b = 0; b < SCALED_FFT_SIZE; b++)
+                            {
+                                //Sum
+                                double max = 0;
+                                for (int s = 0; s < FFT_SCALE_MULTIPLIER; s++)
+                                    max = Math.Max(max, -power[s]);
+                                power += FFT_SCALE_MULTIPLIER;
 
-                    //Write to file
-                    outputAudioWriter.Write(outputAudioBuffer, 0, read);
-                } while (read != 0);
+                                //Write
+                                outputFftBuffer[b] = (byte)max;
+                            }
+
+                            //Write
+                            outputFftWriter.Write(outputFftBuffer, 0, SCALED_FFT_SIZE);
+
+                            //Reset state
+                            samplesToFftFrame = inputReader.SampleRate / FFTS_RATE;
+                        }
+
+                        //Add
+                        fft.AddSamples(iqBufferPtr + i, 1);
+                        samplesToFftFrame--;
+                    }
+
+                    //Process native
+                    native.Process(iqBufferPtr, outputAudioBufferPtr, out int audioOutCount, rdsBufferPtr, out int rdsOutCount, read);
+
+                    //Write audio
+                    outputAudioWriter.Write(outputAudioBuffer, 0, audioOutCount);
+
+                    //Push RDS bits into encoder
+                    blockFrames.Clear();
+                    rds.Process(rdsBuffer, rdsOutCount, blockFrames);
+
+                    //Write this block of frames to the output
+                    foreach (ulong frame in blockFrames)
+                    {
+                        rdsFrames.Add(BitConverter.GetBytes((uint)((totalSamplesRead * sampleRateScale) / RDS_FRAME_SCALE)));
+                        rdsFrames.Add(BitConverter.GetBytes(frame));
+                        rdsFramesLen += 12;
+                    }
+                }
             }
+
+            //Destroy native
+            native.Dispose();
 
             //Write all RDS frames
             foreach(var f in rdsFrames)
@@ -193,7 +182,6 @@ namespace IQArchiveManager.Server.Pre
             //Clean up
             iqBuffer.Dispose();
             audioBuffer.Dispose();
-            audioResampler.Dispose();
 
             //Finalize file
             File.Move(wavFilePath + "._iqpre", wavFilePath + ".iqpre");

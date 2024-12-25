@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IQArchiveManager.Server.Native;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -20,8 +21,10 @@ namespace IQArchiveManager.Server
 
         static void Main(string[] args)
         {
+            //Init library
+            InitNative();
+
             //Create store
-            
             taskGenerators.Add(new Post.PostProcessorTaskStore(args[0]));
             taskGenerators.Add(new Pre.PreProcessorTaskStore(args[0]));
 
@@ -69,6 +72,15 @@ namespace IQArchiveManager.Server
                 //Wait
                 Thread.Sleep(100);
             }
+        }
+
+        static unsafe void InitNative()
+        {
+            Console.WriteLine("Initializing native...");
+            int major;
+            int minor;
+            IQAMNative.GetVersion(&major, &minor);
+            Console.WriteLine($"Loaded native version {major}.{minor}.");
         }
 
         static void PrintToLine(int line, string message)
