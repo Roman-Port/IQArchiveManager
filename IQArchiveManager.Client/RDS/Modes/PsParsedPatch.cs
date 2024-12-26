@@ -14,6 +14,65 @@ namespace IQArchiveManager.Client.RDS.Modes
     {
         protected abstract List<RdsValue<string>> Patch(List<RdsValue<string>> tokens);
 
+        protected virtual long BadPsFrameConcealmentThreshold => 0;
+
+        /// <summary>
+        /// Removes frames that were only valid for a short time.
+        /// </summary>
+        /// <param name="tokens"></param>
+        private void ConcealBadPsFrames(List<RdsValue<string>> tokens)
+        {
+            long threshold = BadPsFrameConcealmentThreshold; // samples
+            int i = 1;
+            while (i < (tokens.Count - 1))
+            {
+                //Check if the duration of this frame is lower than the threshold
+                if ((tokens[i].last - tokens[i].first) < threshold)
+                {
+                    //This token is set to be removed. Access previous and next frame to figure out what should take its place
+                    char[] prev = tokens[i - 1].value.ToCharArray();
+                    char[] cur = tokens[i].value.ToCharArray();
+                    char[] next = tokens[i + 1].value.ToCharArray();
+
+                    //Get matches between the next and previous
+                    int matchesPrev = GetMatchingCharCount(cur, prev);
+                    int matchesNext = GetMatchingCharCount(cur, next);
+
+                    //Whichever has more matches, use that as the target to merge with
+                    if (matchesNext >= matchesPrev)
+                    {
+                        tokens[i + 1].first = tokens[i].first;
+                        tokens.RemoveAt(i);
+                    }
+                    else
+                    {
+                        tokens[i - 1].last = tokens[i].last;
+                        tokens.RemoveAt(i);
+                    }
+                }
+                else
+                {
+                    //Continue
+                    i++;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the number of characters matching between the two inputs.
+        /// </summary>
+        /// <returns></returns>
+        private int GetMatchingCharCount(char[] a, char[] b)
+        {
+            int o = 0;
+            for (int i = 0; i < a.Length; i++)
+            {
+                if (a[i] == b[i])
+                    o++;
+            }
+            return o;
+        }
+
         private int FindOffset(char[] previous, char[] current)
         {
             int offset = -1;
@@ -53,7 +112,11 @@ namespace IQArchiveManager.Client.RDS.Modes
             //Razors
             //Edge
 
-            //First, find all tokens
+            //Attempt to conceal bad PS frames
+            if (BadPsFrameConcealmentThreshold > 0)
+                ConcealBadPsFrames(rdsPsFrames);
+
+            //Find all tokens
             List<RdsValue<string>> tokens = new List<RdsValue<string>>();
             char[] lastPsFrame = new char[8];
             char[] tokenBuffer = new char[1024];

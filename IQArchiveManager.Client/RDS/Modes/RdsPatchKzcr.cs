@@ -35,6 +35,8 @@ namespace IQArchiveManager.Client.RDS.Modes
 
         public override RdsModeId Id => RdsModeId.KZCR;
 
+        protected override long BadPsFrameConcealmentThreshold => 20000; // samples
+
         public override bool IsRecommended(List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
         {
             //Search for KZCR-FM's PI code. If it's found, use the KZCR method
@@ -204,6 +206,10 @@ namespace IQArchiveManager.Client.RDS.Modes
             return true;
         }
 
+        /// <summary>
+        /// Cleans corrupted output RT frames.
+        /// </summary>
+        /// <param name="newFrames"></param>
         protected virtual void CleanCorruptedFrames(List<RdsValue<string>> newFrames)
         {
             for (int i = 0; i < newFrames.Count; i++)
