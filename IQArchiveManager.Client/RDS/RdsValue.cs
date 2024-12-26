@@ -24,6 +24,11 @@ namespace IQArchiveManager.Client.RDS
             this.last = last;
         }
 
+        public RdsValue<T> Clone()
+        {
+            return new RdsValue<T>(first, last, value);
+        }
+
         public override string ToString()
         {
             return value.ToString();

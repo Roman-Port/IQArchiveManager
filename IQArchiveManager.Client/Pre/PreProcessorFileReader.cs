@@ -48,6 +48,17 @@ namespace IQArchiveManager.Client.Pre
             }
         }
 
+        public bool HasStream(string tag)
+        {
+            foreach (var s in streams)
+            {
+                if (tag != s.tag)
+                    continue;
+                return true;
+            }
+            return false;
+        }
+
         public bool TryGetStreamByTag(string tag, out PreProcessorFileStreamReader output)
         {
             output = null;

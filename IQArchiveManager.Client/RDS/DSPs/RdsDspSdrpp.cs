@@ -1,14 +1,16 @@
-﻿using IQArchiveManager.Common.IO.RDS;
+﻿using IQArchiveManager.Client.Pre;
+using IQArchiveManager.Common.IO.RDS;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
 using System.Text;
 
 namespace IQArchiveManager.Client.RDS
 {
     // Modified + ported version of SDR++ RDS decoder
-    class RdsBlockDecoder
+    class RdsDspSdrpp : IRdsDsp
     {
-        public RdsBlockDecoder()
+        public RdsDspSdrpp()
         {
 
         }
@@ -55,7 +57,32 @@ namespace IQArchiveManager.Client.RDS
         private const int DATA_LEN = 16;
         private const int POLY_LEN = 10;
 
-        public RdsPacket? Process(byte symbol, uint timestamp)
+        public List<RdsPacket> Load(PreProcessorFileStreamReader stream)
+        {
+            //Create reader on it
+            RdsDeserializer reader = new RdsDeserializer(stream);
+
+            //Read out bits and push into bit decoder
+            long timestamp;
+            byte bit;
+            RdsPacket? packet;
+            List<RdsPacket> output = new List<RdsPacket>();
+            while (reader.ReadBit(out timestamp, out bit))
+            {
+                //Decode
+                packet = Process(bit, timestamp);
+
+                //If got a result, push into decoder
+                if (packet != null && (packet.Value.flags & RdsFlags.CORRECTED) != RdsFlags.CORRECTED)
+                {
+                    output.Add(packet.Value);
+                }
+            }
+
+            return output;
+        }
+
+        private RdsPacket? Process(byte symbol, long timestamp)
         {
             // Shift in the bit
             shiftReg <<= 1;
@@ -150,10 +177,10 @@ namespace IQArchiveManager.Client.RDS
                 flags = (RdsFlags)((int)flags & ~(1 << (int)flag));
         }
 
-        private RdsPacket SubmitFrame(uint timestamp)
+        private RdsPacket SubmitFrame(long timestamp)
         {
             //Format the frame
-            ulong output = 0;
+            /*ulong output = 0;
             ushort block;
             int flipped;
             for (int i = 0; i < 4; i++)
@@ -169,13 +196,16 @@ namespace IQArchiveManager.Client.RDS
 
                 //Push in
                 output |= (ulong)flipped << (i * 16);
-            }
+            }*/
 
             return new RdsPacket
             {
                 timestamp = timestamp,
                 flags = flags,
-                frame = output
+                a = (ushort)(blocks[0] >> 10),
+                b = (ushort)(blocks[1] >> 10),
+                c = (ushort)(blocks[2] >> 10),
+                d = (ushort)(blocks[3] >> 10)
             };
         }
 
@@ -219,26 +249,26 @@ namespace IQArchiveManager.Client.RDS
             ushort syn = calcSyndrome(block);
 
             // Use the syndrome register to do error correction if errors are present
-            byte errorFound = 0;
+            bool errorFound = false;
             correctionApplied = false;
             if (syn != 0)
             {
                 for (int i = DATA_LEN - 1; i >= 0; i--)
                 {
                     // Check if the 5 leftmost bits are all zero
-                    errorFound |= (byte)(((syn & 0b11111) == 0) ? 1 : 0);
-                    correctionApplied = correctionApplied || errorFound > 0;
+                    errorFound |= (syn & 0b11111) == 0;
 
                     // Write output
-                    byte outBit = (byte)((syn >> (POLY_LEN - 1)) & 1);
-                    outb ^= (uint)(errorFound & outBit) << (i + POLY_LEN);
+                    uint outBit = (uint)((syn >> (POLY_LEN - 1)) & 1);
+                    if (errorFound)
+                        outb ^= outBit << (i + POLY_LEN);
 
                     // Shift syndrome
                     syn = (ushort)((syn << 1) & 0b1111111111);
-                    syn ^= (ushort)(LFSR_POLY * outBit * ((!(errorFound != 0)) ? 1 : 0));
+                    syn ^= (ushort)(LFSR_POLY * outBit * ((!errorFound) ? 1 : 0));
                 }
             }
-            recovered = (syn & 0b11111) == 0;
+            recovered = (syn & 0b11111) == 0; //!(syn & 0b11111);
 
             return outb;
         }

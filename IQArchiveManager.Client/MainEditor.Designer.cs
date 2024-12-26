@@ -97,13 +97,14 @@ namespace IQArchiveManager.Client
             this.moveEndToPlayheadToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.findViaRDSToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.clipGrid1 = new IQArchiveManager.Client.Components.ClipGrid();
-            this.transportControls = new IQArchiveManager.Client.Components.TransportControls();
             this.debugToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exportRDSToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.rawPSFramesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.rawRTFramesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.parsedRTFramesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.clipGrid1 = new IQArchiveManager.Client.Components.ClipGrid();
+            this.transportControls = new IQArchiveManager.Client.Components.TransportControls();
+            this.rDSDSPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1.SuspendLayout();
             this.prefixSuffixPanel.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -836,6 +837,46 @@ namespace IQArchiveManager.Client
             this.findViaRDSToolStripMenuItem.Text = "Find via RDS";
             this.findViaRDSToolStripMenuItem.Click += new System.EventHandler(this.btnAutoRds_Click);
             // 
+            // debugToolStripMenuItem
+            // 
+            this.debugToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.exportRDSToolStripMenuItem,
+            this.rDSDSPToolStripMenuItem});
+            this.debugToolStripMenuItem.Name = "debugToolStripMenuItem";
+            this.debugToolStripMenuItem.Size = new System.Drawing.Size(54, 20);
+            this.debugToolStripMenuItem.Text = "Debug";
+            // 
+            // exportRDSToolStripMenuItem
+            // 
+            this.exportRDSToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.rawPSFramesToolStripMenuItem,
+            this.rawRTFramesToolStripMenuItem,
+            this.parsedRTFramesToolStripMenuItem});
+            this.exportRDSToolStripMenuItem.Name = "exportRDSToolStripMenuItem";
+            this.exportRDSToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exportRDSToolStripMenuItem.Text = "Export RDS";
+            // 
+            // rawPSFramesToolStripMenuItem
+            // 
+            this.rawPSFramesToolStripMenuItem.Name = "rawPSFramesToolStripMenuItem";
+            this.rawPSFramesToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
+            this.rawPSFramesToolStripMenuItem.Text = "Raw PS Frames...";
+            this.rawPSFramesToolStripMenuItem.Click += new System.EventHandler(this.rawPSFramesToolStripMenuItem_Click);
+            // 
+            // rawRTFramesToolStripMenuItem
+            // 
+            this.rawRTFramesToolStripMenuItem.Name = "rawRTFramesToolStripMenuItem";
+            this.rawRTFramesToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
+            this.rawRTFramesToolStripMenuItem.Text = "Raw RT Frames...";
+            this.rawRTFramesToolStripMenuItem.Click += new System.EventHandler(this.rawRTFramesToolStripMenuItem_Click);
+            // 
+            // parsedRTFramesToolStripMenuItem
+            // 
+            this.parsedRTFramesToolStripMenuItem.Name = "parsedRTFramesToolStripMenuItem";
+            this.parsedRTFramesToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
+            this.parsedRTFramesToolStripMenuItem.Text = "Parsed RT Frames...";
+            this.parsedRTFramesToolStripMenuItem.Click += new System.EventHandler(this.parsedRTFramesToolStripMenuItem_Click);
+            // 
             // clipGrid1
             // 
             this.clipGrid1.IsMini = true;
@@ -855,44 +896,11 @@ namespace IQArchiveManager.Client
             this.transportControls.TabIndex = 0;
             this.transportControls.TimeChanged += new IQArchiveManager.Client.Pre.PreProcessorFileStreamReader_Event(this.transportControls_TimeChanged);
             // 
-            // debugToolStripMenuItem
+            // rDSDSPToolStripMenuItem
             // 
-            this.debugToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.exportRDSToolStripMenuItem});
-            this.debugToolStripMenuItem.Name = "debugToolStripMenuItem";
-            this.debugToolStripMenuItem.Size = new System.Drawing.Size(54, 20);
-            this.debugToolStripMenuItem.Text = "Debug";
-            // 
-            // exportRDSToolStripMenuItem
-            // 
-            this.exportRDSToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.rawPSFramesToolStripMenuItem,
-            this.rawRTFramesToolStripMenuItem,
-            this.parsedRTFramesToolStripMenuItem});
-            this.exportRDSToolStripMenuItem.Name = "exportRDSToolStripMenuItem";
-            this.exportRDSToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.exportRDSToolStripMenuItem.Text = "Export RDS";
-            // 
-            // rawPSFramesToolStripMenuItem
-            // 
-            this.rawPSFramesToolStripMenuItem.Name = "rawPSFramesToolStripMenuItem";
-            this.rawPSFramesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.rawPSFramesToolStripMenuItem.Text = "Raw PS Frames...";
-            this.rawPSFramesToolStripMenuItem.Click += new System.EventHandler(this.rawPSFramesToolStripMenuItem_Click);
-            // 
-            // rawRTFramesToolStripMenuItem
-            // 
-            this.rawRTFramesToolStripMenuItem.Name = "rawRTFramesToolStripMenuItem";
-            this.rawRTFramesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.rawRTFramesToolStripMenuItem.Text = "Raw RT Frames...";
-            this.rawRTFramesToolStripMenuItem.Click += new System.EventHandler(this.rawRTFramesToolStripMenuItem_Click);
-            // 
-            // parsedRTFramesToolStripMenuItem
-            // 
-            this.parsedRTFramesToolStripMenuItem.Name = "parsedRTFramesToolStripMenuItem";
-            this.parsedRTFramesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.parsedRTFramesToolStripMenuItem.Text = "Parsed RT Frames...";
-            this.parsedRTFramesToolStripMenuItem.Click += new System.EventHandler(this.parsedRTFramesToolStripMenuItem_Click);
+            this.rDSDSPToolStripMenuItem.Name = "rDSDSPToolStripMenuItem";
+            this.rDSDSPToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.rDSDSPToolStripMenuItem.Text = "RDS DSP";
             // 
             // MainEditor
             // 
@@ -1010,5 +1018,6 @@ namespace IQArchiveManager.Client
         private System.Windows.Forms.ToolStripMenuItem rawPSFramesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem rawRTFramesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem parsedRTFramesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem rDSDSPToolStripMenuItem;
     }
 }

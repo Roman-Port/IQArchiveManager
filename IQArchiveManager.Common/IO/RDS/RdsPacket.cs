@@ -6,8 +6,11 @@ namespace IQArchiveManager.Common.IO.RDS
 {
     public struct RdsPacket
     {
-        public uint timestamp;
+        public long timestamp;
         public RdsFlags flags;
-        public ulong frame;
+        public ushort a;
+        public ushort b;
+        public ushort c;
+        public ushort d;
     }
 }

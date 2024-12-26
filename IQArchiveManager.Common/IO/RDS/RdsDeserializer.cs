@@ -29,7 +29,9 @@ namespace IQArchiveManager.Common.IO.RDS
         private int posByte = 0;
         private int posBit = 0;
 
-        public bool ReadBit(out uint timestamp, out byte bit)
+        private const int RDS_FRAME_NUMBER_SCALE = 10;
+
+        public bool ReadBit(out long timestamp, out byte bit)
         {
             //Check if we need to read a new chunk in
             if (bitsRemaining <= 0)
@@ -47,7 +49,7 @@ namespace IQArchiveManager.Common.IO.RDS
                 }
 
                 //Extract info from header
-                lastTimestamp = BitConverter.ToUInt32(buffer, 0);
+                lastTimestamp = BitConverter.ToUInt32(buffer, 0) * RDS_FRAME_NUMBER_SCALE;
                 bitsRemaining = BitConverter.ToUInt16(buffer, 4);
 
                 //Calculate number of bytes these will fill

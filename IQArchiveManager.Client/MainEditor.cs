@@ -4,6 +4,7 @@ using IQArchiveManager.Client.RDS;
 using IQArchiveManager.Client.RDS.Modes;
 using IQArchiveManager.Client.Util;
 using IQArchiveManager.Common;
+using IQArchiveManager.Common.IO.RDS;
 using NAudio.Wave;
 using Newtonsoft.Json;
 using RomanPort.LibSDR.Components;
@@ -21,6 +22,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace IQArchiveManager.Client
 {
@@ -267,18 +269,115 @@ namespace IQArchiveManager.Client
             //Set up transport controls
             transportControls.SetStreams(wavFile.LastWriteTime, inputReader.GetStreamByTag("AUDIO"), audioPlayer.Stream, fftStream);
 
-            //Read RDS -- Detect which version we are using
-            rds.Reset();
-            PreProcessorFileStreamReader rdsStream;
-            if (inputReader.TryGetStreamByTag("RDS", out rdsStream))
-                rds.LoadV1(rdsStream);
-            else if (inputReader.TryGetStreamByTag("RDS2", out rdsStream))
-                rds.LoadV2(rdsStream);
-            else
-                MessageBox.Show("No valid RDS stream found. Outdated client?", "No RDS", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            //Load RDS
+            InitRds();
 
             //Create TuneGenie instance for fetching metadata
             tuneGenie = new TuneGenieCache(CalculateOffsetTime(0), CalculateOffsetTime(transportControls.StreamAudio.Length));
+        }
+
+        private void InitRds()
+        {
+            //Generate backwards list of DSP IDs
+            RdsDspId[] ids = ((RdsDspId[])Enum.GetValues(typeof(RdsDspId))).Reverse().ToArray();
+
+            //Find in-file DSP -- By default, load the existing DSP with the highest ID
+            foreach (RdsDspId dspId in ids)
+            {
+                if (inputReader.TryGetStreamByTag(RdsDspStore.GetPreFileDspTag(dspId), out PreProcessorFileStreamReader localStream))
+                {
+                    //Create dummy DSP that loads from the file
+                    rds.Load(new InFileRdsDsp().Load(localStream));
+
+                    //Configure menu
+                    SetupRdsMenu(dspId, false);
+                    localStream.Close();
+                    return;
+                }
+            }
+
+            //Fall back to local DSPs if we have the raw bitstream
+            if (inputReader.TryGetStreamByTag(RdsDspStore.PRE_FILE_RAW_BITSTREAM, out PreProcessorFileStreamReader rdsStream))
+            {
+                foreach (RdsDspId dspId in ids)
+                {
+                    //Create DSP
+                    rds.Load(RdsDspStore.CreateDsp(dspId).Load(rdsStream));
+
+                    //Configure menu
+                    SetupRdsMenu(dspId, true);
+                    rdsStream.Close();
+                    return;
+                }
+                rdsStream.Close();
+            }
+
+            //Abort
+            SetupRdsMenu(null, true);
+            rds.Reset();
+            MessageBox.Show("No valid RDS stream found. Outdated client?", "No RDS", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        private void SetupRdsMenu(RdsDspId? currentSelection, bool currentSelectionLocal)
+        {
+            //Clear existing items
+            rDSDSPToolStripMenuItem.DropDownItems.Clear();
+
+            //Create the two submenus
+            List<ToolStripMenuItem> menuServer = new List<ToolStripMenuItem>();
+            List<ToolStripMenuItem> menuClient = new List<ToolStripMenuItem>();
+            bool hasRawBitstream = inputReader.HasStream(RdsDspStore.PRE_FILE_RAW_BITSTREAM);
+            foreach (RdsDspId dspId in Enum.GetValues(typeof(RdsDspId)))
+            {
+                //Create server button
+                ToolStripMenuItem itemServer = new ToolStripMenuItem($"{dspId} (IN-FILE)");
+                itemServer.Enabled = inputReader.HasStream(RdsDspStore.GetPreFileDspTag(dspId));
+                itemServer.Checked = !currentSelectionLocal && currentSelection != null && currentSelection.Value == dspId;
+                itemServer.Tag = dspId;
+                itemServer.Click += ChangeRdsServer;
+                menuServer.Add(itemServer);
+
+                //Create client button
+                ToolStripMenuItem itemClient = new ToolStripMenuItem($"{dspId} (LOCAL)");
+                itemClient.Enabled = hasRawBitstream;
+                itemClient.Checked = currentSelectionLocal && currentSelection != null && currentSelection.Value == dspId;
+                itemClient.Tag = dspId;
+                itemClient.Click += ChangeRdsClient;
+                menuClient.Add(itemClient);
+            }
+
+            //Set up menu
+            foreach (var i in menuServer)
+                rDSDSPToolStripMenuItem.DropDownItems.Add(i);
+            rDSDSPToolStripMenuItem.DropDownItems.Add(new ToolStripSeparator());
+            foreach (var i in menuClient)
+                rDSDSPToolStripMenuItem.DropDownItems.Add(i);
+        }
+
+        private void ChangeRdsServer(object sender, EventArgs e)
+        {
+            //Get ID
+            RdsDspId dspId = (RdsDspId)(sender as ToolStripMenuItem).Tag;
+
+            //Create dummy DSP that loads from the file
+            using (PreProcessorFileStreamReader rdsStream = inputReader.GetStreamByTag(RdsDspStore.GetPreFileDspTag(dspId)))
+                rds.Load(new InFileRdsDsp().Load(rdsStream));
+
+            //Configure menu
+            SetupRdsMenu(dspId, false);
+        }
+
+        private void ChangeRdsClient(object sender, EventArgs e)
+        {
+            //Get ID
+            RdsDspId dspId = (RdsDspId)(sender as ToolStripMenuItem).Tag;
+
+            //Create DSP
+            using (PreProcessorFileStreamReader rdsStream = inputReader.GetStreamByTag(RdsDspStore.PRE_FILE_RAW_BITSTREAM))
+                rds.Load(RdsDspStore.CreateDsp(dspId).Load(rdsStream));
+
+            //Configure menu
+            SetupRdsMenu(dspId, true);
         }
 
         class AudioPlaybackProvider : IWaveProvider
