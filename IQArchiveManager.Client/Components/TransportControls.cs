@@ -384,26 +384,7 @@ namespace IQArchiveManager.Client.Components
             }
         }
 
-        public bool AutoDetectRange(RdsReader rds, out RdsValue<string> rt)
-        {
-            //Get
-            rt = rds.GetRtAtSample(audioStream.Position);
-            if (rt == null)
-                return false;
-            long start = rt.first;
-            long end = rt.last;
-
-            //Expand range to give us some leeway
-            start = Math.Max(0, start - (15 * MainEditor.AUDIO_SAMPLE_RATE));
-            end = Math.Min(audioStream.Length, end + (10 + MainEditor.AUDIO_SAMPLE_RATE));
-
-            //Update
-            SetSelectionRegion(start, end);
-
-            return rt != null;
-        }
-
-        public void SetSelectionRegion(long startSample, long endSample)
+        public void SetSelectionRegion(long startSample, long endSample, long playheadPosOffset = 0)
         {
             //Bounds check
             startSample = Math.Max(0, startSample);
@@ -418,7 +399,7 @@ namespace IQArchiveManager.Client.Components
             timeSpanChooserEnd.Value = TimeSpan.FromSeconds(endSample / MainEditor.AUDIO_SAMPLE_RATE);
 
             //Set current
-            audioStream.Position = startSample;
+            audioStream.Position = startSample + playheadPosOffset;
 
             //Refresh
             UpdateImage();

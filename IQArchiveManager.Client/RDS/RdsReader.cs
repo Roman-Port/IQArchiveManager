@@ -34,9 +34,10 @@ namespace IQArchiveManager.Client.RDS
             this.rdsModes = rdsModes;
         }
 
-        public IReadOnlyList<RdsValue<string>> PsFrames => decoder.PsFrames;
-        public IReadOnlyList<RdsValue<string>> ParsedRtFrames => rdsRtFramesParsed;
-        public IReadOnlyList<RdsValue<string>> RawRtFrames => decoder.RtFrames;
+        public List<RdsValue<string>> PsFrames => decoder.PsFrames;
+        public List<RdsValue<string>> ParsedRtFrames => rdsRtFramesParsed;
+        public List<RdsValue<string>> RawRtFrames => decoder.RtFrames;
+        public List<RdsValue<ushort>> RawPiFrames => decoder.PiFrames;
 
         public void Reset()
         {

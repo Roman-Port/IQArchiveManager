@@ -92,6 +92,9 @@ namespace IQArchiveManager.Client
                 //Finalize
                 rdsPatchMethod.EndUpdate();
                 rdsPatchMethod.SelectedIndexChanged += rdsPatchMethod_SelectedIndexChanged;
+
+                //Reset state
+                lastSelectFromRdsIndex = 0;
             });
         }
 
@@ -229,6 +232,8 @@ namespace IQArchiveManager.Client
         private string matchedRds = null; // This and the following are written to the file when it was matched via RDS and may be used for future anaylsis
         private int matchedRdsParser = -1;
 
+        private int lastSelectFromRdsIndex = 0; // The last RT index used in SelectFromRds
+
         private void Open(string wavPath)
         {
             //Get files
@@ -278,6 +283,9 @@ namespace IQArchiveManager.Client
 
             //Create TuneGenie instance for fetching metadata
             tuneGenie = new TuneGenieCache(CalculateOffsetTime(0), CalculateOffsetTime(transportControls.StreamAudio.Length));
+
+            //Reset state
+            lastSelectFromRdsIndex = 0;
         }
 
         private void InitRds()
@@ -502,50 +510,115 @@ namespace IQArchiveManager.Client
             btnAddClip.Enabled = false;
         }
 
-        private void btnAutoRds_Click(object sender, EventArgs e)
+        private void SelectFromRds(RdsValue<string> rt)
         {
-            //Autodetect range
-            RdsValue<string> rt;
-            if (!transportControls.AutoDetectRange(rds, out rt))
-            {
-                MessageBox.Show("Failed to auto-detect RDS.", "Automatic Recognization Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
+            //Determine the index of this
+            lastSelectFromRdsIndex = rds.ParsedRtFrames.IndexOf(rt);
+            if (lastSelectFromRdsIndex == -1)
+                throw new Exception("SelectFromRds value is not in the list of parsed RDS frames.");
+
+            //Expand range to give us some leeway
+            long start = Math.Max(0, rt.first - (15 * AUDIO_SAMPLE_RATE));
+            long end = Math.Min(transportControls.StreamAudio.Length, rt.last + (15 + AUDIO_SAMPLE_RATE));
+
+            //Select region
+            transportControls.SetSelectionRegion(start, end, (end - start) / 4);
 
             //Autodetect callsign
             string call;
-            RdsValue<ushort> piFrame = rds.GetPiAtSample(audioPlayer.Stream.Position);
+            RdsValue<ushort> piFrame = rds.GetPiAtSample(rt.first);
             if (piFrame == null || !RDSClient.TryGetCallsign(piFrame.value, out call))
             {
                 MessageBox.Show("Failed to auto-detect PI to get callsign.", "Automatic Recognization Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            //Apply
-            inputCall.Text = call + "-FM";
-            inputArtist.Text = rt.value;
-
-            //Only proceed if we're trying to parse a song
-            if (typeBtnSong.Checked)
+            //Attempt to parse
+            string artist = "SPOTS";
+            string title = "SPOTS";
+            bool matched = false;
+            if (rds.rdsModes[rdsPatchMethod.SelectedIndex].TryParse(rt, out string trackTitle, out string trackArtist, out string stationName, false))
             {
-                //Attempt to parse
-                if (rds.rdsModes[rdsPatchMethod.SelectedIndex].TryParse(rt, out string trackTitle, out string trackArtist, out string stationName, false))
-                {
-                    inputArtist.Text = trackArtist;
-                    inputTitle.Text = trackTitle;
-                    inputCall.Text = call + "-FM";
-                    UpdateAddBtnStatus();
-                    matchedRds = rt.value;
-                    matchedRdsParser = (int)rds.rdsModes[rdsPatchMethod.SelectedIndex].Id;
-                    return;
-                }
+                //Update fields
+                artist = trackArtist;
+                title = trackTitle;
+                matched = true;
+
+                //Update metadata
+                matchedRds = rt.value;
+                matchedRdsParser = (int)rds.rdsModes[rdsPatchMethod.SelectedIndex].Id;
             }
+
+            //If matched to a song, set it as song. Otherwise set it as spot
+            if (matched)
+            {
+                typeBtnSong.Checked = true;
+                typeBtnLiner.Checked = false;
+            }
+            else
+            {
+                typeBtnLiner.Checked = true;
+                typeBtnSong.Checked = false;
+            }
+
+            //Apply to fields
+            inputCall.Text = call + "-FM";
+            inputArtist.Text = artist;
+            inputTitle.Text = title;
 
             //Update the button
             UpdateAddBtnStatus();
+        }
 
-            //Failed!
-            MessageBox.Show("Failed to recognize the audio.", "Automatic Recognization Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        private void SelectFromRdsOffset(int offset)
+        {
+            //Get new index
+            int newIndex = lastSelectFromRdsIndex + offset;
+
+            //Search until we find one of substancial length
+            while (true)
+            {
+                //Check if it is in bounds
+                if (newIndex < 0)
+                {
+                    MessageBox.Show("This is the first RDS frame.", "Select From RDS", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                if (newIndex >= rds.ParsedRtFrames.Count)
+                {
+                    MessageBox.Show("This is the last RDS frame.", "Select From RDS", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                //Get frame
+                RdsValue<string> frame = rds.ParsedRtFrames[newIndex];
+
+                //Check that it is at least a few seconds long
+                if (frame.last - frame.first >= AUDIO_SAMPLE_RATE * 20)
+                {
+                    //Jump
+                    SelectFromRds(rds.ParsedRtFrames[newIndex]);
+                    break;
+                } else
+                {
+                    //Add to the index and try again
+                    newIndex += offset;
+                }
+            }
+        }
+
+        private void btnAutoRds_Click(object sender, EventArgs e)
+        {
+            //Autodetect
+            RdsValue<string> rt = rds.GetRtAtSample(transportControls.StreamAudio.Position);
+            if (rt == null)
+            {
+                MessageBox.Show("Failed to auto-detect RDS.", "Automatic Recognization Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            //Select
+            SelectFromRds(rt);
         }
 
         private void autoTgCall_TextChanged(object sender, EventArgs e)
@@ -852,6 +925,28 @@ namespace IQArchiveManager.Client
             transportControls.NudgeEnd(-NUDGE_AMOUNT_FINE);
         }
 
+        //
+
+        private void nextRDSItemToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //Change selection
+            SelectFromRdsOffset(1);
+
+            //Shift suffix -> prefix
+            inputPrefix.Text = inputSuffix.Text;
+            inputSuffix.Text = "";
+        }
+
+        private void previousRDSItemToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //Change selection
+            SelectFromRdsOffset(-1);
+
+            //Shift prefix -> suffix
+            inputSuffix.Text = inputPrefix.Text;
+            inputPrefix.Text = "";
+        }
+
         private void typeBtnSong_CheckedChanged(object sender, EventArgs e)
         {
             UpdateEntryLayout();
@@ -886,7 +981,12 @@ namespace IQArchiveManager.Client
             ExportRdsFrames(rds.RawRtFrames);
         }
 
-        private void ExportRdsFrames(IReadOnlyList<RdsValue<string>> frames)
+        private void rawPIFramesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ExportRdsFrames(rds.RawPiFrames.Select(x => new RdsValue<string>(x.first, x.last, x.value.ToString())));
+        }
+
+        private void ExportRdsFrames(IEnumerable<RdsValue<string>> frames)
         {
             //Prompt for filename
             SaveFileDialog fd = new SaveFileDialog();
