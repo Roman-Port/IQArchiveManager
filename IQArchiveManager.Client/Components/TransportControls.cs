@@ -62,8 +62,8 @@ namespace IQArchiveManager.Client.Components
 
         private int lastMouseCursorX = -1;
 
-        public double EditStartSeconds { get => (double)selectionStartSample / 20000; }
-        public double EditEndSeconds { get => (double)selectionStopSample / 20000; }
+        public double EditStartSeconds { get => (double)selectionStartSample / MainEditor.AUDIO_SAMPLE_RATE; }
+        public double EditEndSeconds { get => (double)selectionStopSample / MainEditor.AUDIO_SAMPLE_RATE; }
         public event PreProcessorFileStreamReader_Event TimeChanged;
 
         public PreProcessorFileStreamReader StreamThumb => thumbStream;
@@ -81,7 +81,7 @@ namespace IQArchiveManager.Client.Components
             this.fftStream = fftStream;
 
             //Compute timestamps
-            sourceBegin = sourceLastModified.AddSeconds(audioStream.Length / -20000.0);
+            sourceBegin = sourceLastModified.AddSeconds(audioStream.Length / (double)-MainEditor.AUDIO_SAMPLE_RATE);
             sourceEnd = sourceLastModified;
 
             //Add event
@@ -99,7 +99,7 @@ namespace IQArchiveManager.Client.Components
         private void AudioStream_OnSegmentChanged(PreProcessorFileStreamReader reader)
         {
             //Set time in UI
-            timeSpanChooserCurrent.Value = TimeSpan.FromSeconds((double)reader.Position / 20000);
+            timeSpanChooserCurrent.Value = TimeSpan.FromSeconds((double)reader.Position / MainEditor.AUDIO_SAMPLE_RATE);
 
             //Update image
             UpdateImage();
@@ -282,13 +282,13 @@ namespace IQArchiveManager.Client.Components
             if (e.Button == MouseButtons.Left)
             {
                 selectionStartSample = PixelToSample(e.X);
-                timeSpanChooserStart.Value = TimeSpan.FromSeconds((double)selectionStartSample / 20000);
+                timeSpanChooserStart.Value = TimeSpan.FromSeconds((double)selectionStartSample / MainEditor.AUDIO_SAMPLE_RATE);
                 UpdateImage();
             }
             if (e.Button == MouseButtons.Right)
             {
                 selectionStopSample = PixelToSample(e.X);
-                timeSpanChooserEnd.Value = TimeSpan.FromSeconds((double)selectionStopSample / 20000);
+                timeSpanChooserEnd.Value = TimeSpan.FromSeconds((double)selectionStopSample / MainEditor.AUDIO_SAMPLE_RATE);
                 UpdateImage();
             }
         }
@@ -305,19 +305,19 @@ namespace IQArchiveManager.Client.Components
 
         private void timeSpanChooserCurrent_OnValueChanged(object sender, EventArgs e)
         {
-            audioStream.Position = Math.Min(audioStream.Length - 1, (long)(timeSpanChooserCurrent.Value.TotalSeconds * 20000));
+            audioStream.Position = Math.Min(audioStream.Length - 1, (long)(timeSpanChooserCurrent.Value.TotalSeconds * MainEditor.AUDIO_SAMPLE_RATE));
             UpdateImage();
         }
 
         private void timeSpanChooserStart_OnValueChanged(object sender, EventArgs e)
         {
-            selectionStartSample = (long)(timeSpanChooserStart.Value.TotalSeconds * 20000);
+            selectionStartSample = (long)(timeSpanChooserStart.Value.TotalSeconds * MainEditor.AUDIO_SAMPLE_RATE);
             UpdateImage();
         }
 
         private void timeSpanChooserEnd_OnValueChanged(object sender, EventArgs e)
         {
-            selectionStopSample = (long)(timeSpanChooserEnd.Value.TotalSeconds * 20000);
+            selectionStopSample = (long)(timeSpanChooserEnd.Value.TotalSeconds * MainEditor.AUDIO_SAMPLE_RATE);
             UpdateImage();
         }
 
@@ -384,14 +384,18 @@ namespace IQArchiveManager.Client.Components
             }
         }
 
-        public bool AutoDetectRange(RdsReader rds, out string rt)
+        public bool AutoDetectRange(RdsReader rds, out RdsValue<string> rt)
         {
             //Get
-            rt = rds.GetRtAtSample(audioStream.Position, out long start, out long end);
+            rt = rds.GetRtAtSample(audioStream.Position);
+            if (rt == null)
+                return false;
+            long start = rt.first;
+            long end = rt.last;
 
             //Expand range to give us some leeway
-            start = Math.Max(0, start - (15 * 20000));
-            end = Math.Min(audioStream.Length, end + (10 + 20000));
+            start = Math.Max(0, start - (15 * MainEditor.AUDIO_SAMPLE_RATE));
+            end = Math.Min(audioStream.Length, end + (10 + MainEditor.AUDIO_SAMPLE_RATE));
 
             //Update
             SetSelectionRegion(start, end);
@@ -407,11 +411,11 @@ namespace IQArchiveManager.Client.Components
 
             //Set start
             selectionStartSample = startSample;
-            timeSpanChooserStart.Value = TimeSpan.FromSeconds(startSample / 20000);
+            timeSpanChooserStart.Value = TimeSpan.FromSeconds(startSample / MainEditor.AUDIO_SAMPLE_RATE);
 
             //Set end
             selectionStopSample = endSample;
-            timeSpanChooserEnd.Value = TimeSpan.FromSeconds(endSample / 20000);
+            timeSpanChooserEnd.Value = TimeSpan.FromSeconds(endSample / MainEditor.AUDIO_SAMPLE_RATE);
 
             //Set current
             audioStream.Position = startSample;
@@ -432,7 +436,7 @@ namespace IQArchiveManager.Client.Components
         /// <returns></returns>
         public long TimeToSample(DateTime time)
         {
-            return (long)((time - sourceBegin).TotalSeconds * 20000.0);
+            return (long)((time - sourceBegin).TotalSeconds * (double)MainEditor.AUDIO_SAMPLE_RATE);
         }
 
         /// <summary>
@@ -442,7 +446,7 @@ namespace IQArchiveManager.Client.Components
         /// <returns></returns>
         public DateTime SampleToTime(long time)
         {
-            return sourceBegin.AddSeconds(time / 20000.0);
+            return sourceBegin.AddSeconds(time / (double)MainEditor.AUDIO_SAMPLE_RATE);
         }
 
         public void Close()

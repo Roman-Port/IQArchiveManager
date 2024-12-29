@@ -22,6 +22,11 @@ namespace IQArchiveManager.Client.RDS
             throw new NotSupportedException();
         }
 
+        public virtual bool TryParse(RdsValue<string> rt, out string trackTitle, out string trackArtist, out string stationName, bool fast)
+        {
+            return TryParse(rt, out trackTitle, out trackArtist, out stationName, fast);
+        }
+
         public virtual bool TryParse(string rt, out string trackTitle, out string trackArtist, out string stationName, bool fast)
         {
             //Trim whitespace
@@ -60,7 +65,7 @@ namespace IQArchiveManager.Client.RDS
             return false;
         }
 
-        public abstract bool IsRecommended(List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames);
-        public abstract List<RdsValue<string>> Patch(List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames);
+        public abstract bool IsRecommended(IRdsPatchContext ctx, List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames);
+        public abstract List<RdsValue<string>> Patch(IRdsPatchContext ctx, List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames);
     }
 }

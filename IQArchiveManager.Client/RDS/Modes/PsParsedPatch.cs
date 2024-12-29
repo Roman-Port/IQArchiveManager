@@ -96,7 +96,7 @@ namespace IQArchiveManager.Client.RDS.Modes
             return offset;
         }
 
-        public override List<RdsValue<string>> Patch(List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
+        public override List<RdsValue<string>> Patch(IRdsPatchContext ctx, List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
         {
             //If it's shifted over by one character, it is a continuation. Otherwise, it's a new word and a space should be added:
             //Money

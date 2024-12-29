@@ -26,7 +26,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace IQArchiveManager.Client
 {
-    public unsafe partial class MainEditor : Form
+    public unsafe partial class MainEditor : Form, IRdsPatchContext
     {
         public MainEditor(ClipDatabase db, BaseRdsMode[] rdsModes)
         {
@@ -36,6 +36,8 @@ namespace IQArchiveManager.Client
         }
 
         private volatile bool active = true;
+
+        public const int AUDIO_SAMPLE_RATE = 20000;
 
         private void MainEditor_Load(object sender, EventArgs e)
         {
@@ -119,8 +121,10 @@ namespace IQArchiveManager.Client
                 return;
 
             //Get values
-            string ps = rds.GetPsAtSample(audioPlayer.Stream.Position, out long psStart, out long psEnd);
-            string rt = rds.GetRtAtSample(audioPlayer.Stream.Position, out long start, out long end);
+            RdsValue<string> psDat = rds.GetPsAtSample(audioPlayer.Stream.Position);
+            string ps = psDat == null ? null : psDat.value;
+            RdsValue<string> rtDat = rds.GetRtAtSample(audioPlayer.Stream.Position);
+            string rt = rtDat == null ? null : rtDat.value;
 
             //Update PS
             rdsPsLabel.Text = ps == null ? "" : ps;
@@ -131,7 +135,7 @@ namespace IQArchiveManager.Client
                 //Attempt to format RT if enabled
                 bool showingRaw = true;
                 string formattedRt = rt == null ? "" : rt;
-                if (!forceRawRtDisplay && rt != null && rds.rdsModes[rdsPatchMethod.SelectedIndex].TryParse(rt, out string trackTitle, out string trackArtist, out string stationName, true))
+                if (!forceRawRtDisplay && rt != null && rds.rdsModes[rdsPatchMethod.SelectedIndex].TryParse(rtDat, out string trackTitle, out string trackArtist, out string stationName, true))
                 {
                     formattedRt = trackArtist + " - " + trackTitle;
                     showingRaw = false;
@@ -287,7 +291,7 @@ namespace IQArchiveManager.Client
                 if (inputReader.TryGetStreamByTag(RdsDspStore.GetPreFileDspTag(dspId), out PreProcessorFileStreamReader localStream))
                 {
                     //Create dummy DSP that loads from the file
-                    rds.Load(new InFileRdsDsp().Load(localStream));
+                    rds.Load(new InFileRdsDsp().Load(localStream), this);
 
                     //Configure menu
                     SetupRdsMenu(dspId, false);
@@ -302,7 +306,7 @@ namespace IQArchiveManager.Client
                 foreach (RdsDspId dspId in ids)
                 {
                     //Create DSP
-                    rds.Load(RdsDspStore.CreateDsp(dspId).Load(rdsStream));
+                    rds.Load(RdsDspStore.CreateDsp(dspId).Load(rdsStream), this);
 
                     //Configure menu
                     SetupRdsMenu(dspId, true);
@@ -361,7 +365,7 @@ namespace IQArchiveManager.Client
 
             //Create dummy DSP that loads from the file
             using (PreProcessorFileStreamReader rdsStream = inputReader.GetStreamByTag(RdsDspStore.GetPreFileDspTag(dspId)))
-                rds.Load(new InFileRdsDsp().Load(rdsStream));
+                rds.Load(new InFileRdsDsp().Load(rdsStream), this);
 
             //Configure menu
             SetupRdsMenu(dspId, false);
@@ -374,7 +378,7 @@ namespace IQArchiveManager.Client
 
             //Create DSP
             using (PreProcessorFileStreamReader rdsStream = inputReader.GetStreamByTag(RdsDspStore.PRE_FILE_RAW_BITSTREAM))
-                rds.Load(RdsDspStore.CreateDsp(dspId).Load(rdsStream));
+                rds.Load(RdsDspStore.CreateDsp(dspId).Load(rdsStream), this);
 
             //Configure menu
             SetupRdsMenu(dspId, true);
@@ -384,7 +388,7 @@ namespace IQArchiveManager.Client
         {
             public PreProcessorFileStreamReader Stream { get; set; }
 
-            public WaveFormat WaveFormat => new WaveFormat(20000, 8, 1);
+            public WaveFormat WaveFormat => new WaveFormat(AUDIO_SAMPLE_RATE, 8, 1);
 
             public int Read(byte[] buffer, int offset, int count)
             {
@@ -421,7 +425,7 @@ namespace IQArchiveManager.Client
             //Get the current edit times
             double timeIn = transportControls.EditStartSeconds;
             double timeOut = transportControls.EditEndSeconds;
-            double timeToEnd = ((double)audioPlayer.Stream.Length / 20000) - timeOut;
+            double timeToEnd = ((double)audioPlayer.Stream.Length / AUDIO_SAMPLE_RATE) - timeOut;
 
             //Validate
             if (timeIn > timeOut || timeToEnd < 0)
@@ -501,7 +505,7 @@ namespace IQArchiveManager.Client
         private void btnAutoRds_Click(object sender, EventArgs e)
         {
             //Autodetect range
-            string rt;
+            RdsValue<string> rt;
             if (!transportControls.AutoDetectRange(rds, out rt))
             {
                 MessageBox.Show("Failed to auto-detect RDS.", "Automatic Recognization Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -510,7 +514,8 @@ namespace IQArchiveManager.Client
 
             //Autodetect callsign
             string call;
-            if (!RDSClient.TryGetCallsign(rds.GetPiAtSample(audioPlayer.Stream.Position, out long piStart, out long piEnd), out call))
+            RdsValue<ushort> piFrame = rds.GetPiAtSample(audioPlayer.Stream.Position);
+            if (piFrame == null || !RDSClient.TryGetCallsign(piFrame.value, out call))
             {
                 MessageBox.Show("Failed to auto-detect PI to get callsign.", "Automatic Recognization Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
@@ -518,7 +523,7 @@ namespace IQArchiveManager.Client
 
             //Apply
             inputCall.Text = call + "-FM";
-            inputArtist.Text = rt;
+            inputArtist.Text = rt.value;
 
             //Only proceed if we're trying to parse a song
             if (typeBtnSong.Checked)
@@ -530,7 +535,7 @@ namespace IQArchiveManager.Client
                     inputTitle.Text = trackTitle;
                     inputCall.Text = call + "-FM";
                     UpdateAddBtnStatus();
-                    matchedRds = rt;
+                    matchedRds = rt.value;
                     matchedRdsParser = (int)rds.rdsModes[rdsPatchMethod.SelectedIndex].Id;
                     return;
                 }
@@ -751,7 +756,7 @@ namespace IQArchiveManager.Client
 
         private void rdsPatchMethod_SelectedIndexChanged(object sender, EventArgs e)
         {
-            rds.SwitchPatcher(rds.rdsModes[rdsPatchMethod.SelectedIndex]);
+            rds.SwitchPatcher(rds.rdsModes[rdsPatchMethod.SelectedIndex], this);
         }
 
         private void btnShiftSuffix_Click(object sender, EventArgs e)
@@ -899,6 +904,21 @@ namespace IQArchiveManager.Client
                     frames.Select(x => new string[] { x.first.ToString(), x.last.ToString(), x.value })
                     );
             }
+        }
+
+        public DateTime GetTimeOfFrameStart<T>(RdsValue<T> value)
+        {
+            return CalculateOffsetTime(value.first);
+        }
+
+        public DateTime GetTimeOfFrameEnd<T>(RdsValue<T> value)
+        {
+            return CalculateOffsetTime(value.last);
+        }
+
+        public long GetSampleFromTime(DateTime time)
+        {
+            return transportControls.TimeToSample(time);
         }
     }
 }

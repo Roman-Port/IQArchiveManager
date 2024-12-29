@@ -50,7 +50,7 @@ namespace IQArchiveManager.Client.RDS.Modes
             config.Add("brandings", new JArray(editor.Brandings));
         }
 
-        public override bool IsRecommended(List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
+        public override bool IsRecommended(IRdsPatchContext ctx, List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
         {
             //Search for problematic PIs
             foreach (var pi in rdsPiFrames)
@@ -61,7 +61,7 @@ namespace IQArchiveManager.Client.RDS.Modes
             return false;
         }
 
-        public override List<RdsValue<string>> Patch(List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
+        public override List<RdsValue<string>> Patch(IRdsPatchContext ctx, List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
         {
             //Simply remove station known station branding
             List<RdsValue<string>> newFrames = new List<RdsValue<string>>();

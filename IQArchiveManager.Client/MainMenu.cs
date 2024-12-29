@@ -17,6 +17,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using IQArchiveManager.Client.RDS.Modes.Csv;
 
 namespace IQArchiveManager.Client
 {
@@ -84,6 +85,7 @@ namespace IQArchiveManager.Client
             rdsModes = new BaseRdsMode[]
             {
                 new RdsPatchNative(),
+                new RdsPatchCsv(db),
                 new RdsPatchKzcr(db),
                 new RdsPatchKzcrLegacy(db),
                 new RdsPatchCumulus(),

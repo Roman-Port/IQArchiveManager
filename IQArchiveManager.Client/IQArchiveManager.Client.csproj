@@ -168,6 +168,23 @@
     <Compile Include="RDS\BasicRdsDecoder.cs" />
     <Compile Include="RDS\InFileRdsDsp.cs" />
     <Compile Include="RDS\IRdsDsp.cs" />
+    <Compile Include="RDS\IRdsPatchContext.cs" />
+    <Compile Include="RDS\Modes\Csv\Db\CsvHistoryDatabase.cs" />
+    <Compile Include="RDS\Modes\Csv\Db\CsvPlaybackItem.cs" />
+    <Compile Include="RDS\Modes\Csv\CsvProfile.cs" />
+    <Compile Include="RDS\Modes\Csv\CsvProfileConfigForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RDS\Modes\Csv\CsvProfileConfigForm.Designer.cs">
+      <DependentUpon>CsvProfileConfigForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RDS\Modes\Csv\CsvProfileEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="RDS\Modes\Csv\CsvProfileEditor.Designer.cs">
+      <DependentUpon>CsvProfileEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RDS\Modes\Csv\RdsPatchCsv.cs" />
     <Compile Include="RDS\Modes\PsParsedPatch.cs" />
     <Compile Include="RDS\RdsModeId.cs" />
     <Compile Include="RDS\Modes\RdsPatchKzcrLegacy.cs" />
@@ -230,6 +247,12 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="RDS\Modes\Csv\CsvProfileConfigForm.resx">
+      <DependentUpon>CsvProfileConfigForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RDS\Modes\Csv\CsvProfileEditor.resx">
+      <DependentUpon>CsvProfileEditor.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

@@ -18,7 +18,7 @@ namespace IQArchiveManager.Client.RDS.Modes
     public class RdsPatchKzcr : PsParsedPatch
     {
         private const int MERGE_MAX_SECONDS = 120;
-        private const int MERGE_MAX_SAMPLES = MERGE_MAX_SECONDS * 20000;
+        private const int MERGE_MAX_SAMPLES = MERGE_MAX_SECONDS * MainEditor.AUDIO_SAMPLE_RATE;
 
         private const int CURRENT_ALGORITHM_VERSION = 0;
 
@@ -35,9 +35,9 @@ namespace IQArchiveManager.Client.RDS.Modes
 
         public override RdsModeId Id => RdsModeId.KZCR;
 
-        protected override long BadPsFrameConcealmentThreshold => 20000; // samples
+        protected override long BadPsFrameConcealmentThreshold => MainEditor.AUDIO_SAMPLE_RATE; // samples
 
-        public override bool IsRecommended(List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
+        public override bool IsRecommended(IRdsPatchContext ctx, List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
         {
             //Search for KZCR-FM's PI code. If it's found, use the KZCR method
             foreach (var pi in rdsPiFrames)

@@ -16,7 +16,7 @@ namespace IQArchiveManager.Client.RDS.Modes
 
         public override RdsModeId Id => RdsModeId.KZCR_LEGACY;
 
-        public override bool IsRecommended(List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
+        public override bool IsRecommended(IRdsPatchContext ctx, List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
         {
             return false;
         }

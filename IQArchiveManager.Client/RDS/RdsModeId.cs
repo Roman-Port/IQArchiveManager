@@ -12,6 +12,7 @@ namespace IQArchiveManager.Client.RDS
         TWO_CHAR = 1,
         NO_DELIMITERS = 2,
         KZCR = 3,
-        KZCR_LEGACY = 4
+        KZCR_LEGACY = 4,
+        CSV = 5
     }
 }

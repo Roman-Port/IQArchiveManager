@@ -12,13 +12,13 @@ namespace IQArchiveManager.Client.RDS.Modes
 
         public override RdsModeId Id => RdsModeId.TWO_CHAR;
 
-        public override bool IsRecommended(List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
+        public override bool IsRecommended(IRdsPatchContext ctx, List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
         {
             //If there are no RT frames, use the Cumulus method
             return rdsPsFrames.Count != 0 && rdsRtFrames.Count == 0;
         }
 
-        public override List<RdsValue<string>> Patch(List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
+        public override List<RdsValue<string>> Patch(IRdsPatchContext ctx, List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
         {
             //This parses the Cumulus Media scrolling PS frames to RT for stations that only have
             //PS, but no RT, like KXXR-FM over here. The incoming PS frames look like this, offsetting each by 2 characters:
