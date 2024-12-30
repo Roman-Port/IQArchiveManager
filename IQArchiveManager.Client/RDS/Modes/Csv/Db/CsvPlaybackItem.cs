@@ -25,5 +25,22 @@ namespace IQArchiveManager.Client.RDS.Modes.Csv.Db
         public DateTime Time => time;
         public string Artist => line[profile.ColumnArtist];
         public string Title => line[profile.ColumnTitle];
+
+        public override bool Equals(object obj)
+        {
+            if (obj is CsvPlaybackItem i)
+            {
+                return Profile == i.Profile &&
+                    Time == i.Time &&
+                    Artist == i.Artist &&
+                    Title == i.Title;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -24,7 +24,7 @@ namespace IQArchiveManager.Client.RDS
 
         public virtual bool TryParse(RdsValue<string> rt, out string trackTitle, out string trackArtist, out string stationName, bool fast)
         {
-            return TryParse(rt, out trackTitle, out trackArtist, out stationName, fast);
+            return TryParse(rt.value, out trackTitle, out trackArtist, out stationName, fast);
         }
 
         public virtual bool TryParse(string rt, out string trackTitle, out string trackArtist, out string stationName, bool fast)

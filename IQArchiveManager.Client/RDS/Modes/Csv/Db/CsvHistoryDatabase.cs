@@ -15,7 +15,6 @@ namespace IQArchiveManager.Client.RDS.Modes.Csv.Db
     {
         private List<CsvPlaybackItem> items = new List<CsvPlaybackItem>();
         private List<string> loadedFiles = new List<string>();
-        private bool isSortUpdated = false;
 
         /// <summary>
         /// Loads a day from CSV in. If it's already loaded, this does nothing. If it's already determined to not exist, this does nothing.
@@ -43,8 +42,11 @@ namespace IQArchiveManager.Client.RDS.Modes.Csv.Db
                     items.AddRange(CsvReader.Read(sr).Select(x => new CsvPlaybackItem(x.Values, profile)));
                 }
 
-                //Mark the list as unsorted
-                isSortUpdated = false;
+                //Sort list
+                items.Sort((x, y) => x.Time.CompareTo(y.Time));
+
+                //Patch
+                RemoveDuplicates();
             }
 
             //Add to loaded files
@@ -69,18 +71,25 @@ namespace IQArchiveManager.Client.RDS.Modes.Csv.Db
         /// <summary>
         /// Sorted list of items.
         /// </summary>
-        public List<CsvPlaybackItem> Items
-        {
-            get
-            {
-                //Sort if marked as unsorted
-                if (!isSortUpdated)
-                {
-                    items.Sort((x, y) => x.Time.CompareTo(y.Time));
-                    isSortUpdated = true;
-                }
+        public List<CsvPlaybackItem> Items => items;
 
-                return items;
+        /// <summary>
+        /// Removes duplicate items. This works around a bug in my extractor program that sometimes had items from the previous day in the log.
+        /// This assumes the list is sorted.
+        /// </summary>
+        private void RemoveDuplicates()
+        {
+            int i = 0;
+            while (i < (items.Count - 1))
+            {
+                //Compare this to the next item
+                if (items[i].Equals(items[i + 1]))
+                {
+                    items.RemoveAt(i);
+                } else
+                {
+                    i++;
+                }
             }
         }
     }
