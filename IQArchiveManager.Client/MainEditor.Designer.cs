@@ -65,13 +65,9 @@ namespace IQArchiveManager.Client
             this.inputCall = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.btnFileMove = new System.Windows.Forms.Button();
             this.editedClipsList = new System.Windows.Forms.ListBox();
             this.btnFileDelete = new System.Windows.Forms.Button();
             this.btnFileSave = new System.Windows.Forms.Button();
-            this.rdsLoadPanel = new System.Windows.Forms.Panel();
-            this.rdsLoadProgress = new System.Windows.Forms.ProgressBar();
-            this.label10 = new System.Windows.Forms.Label();
             this.recordingTimeLabel = new System.Windows.Forms.Label();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.navigateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -106,17 +102,16 @@ namespace IQArchiveManager.Client
             this.rawPSFramesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.rawRTFramesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.parsedRTFramesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.rawPIFramesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.rDSDSPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.clipGrid1 = new IQArchiveManager.Client.Components.ClipGrid();
             this.transportControls = new IQArchiveManager.Client.Components.TransportControls();
-            this.rawPIFramesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1.SuspendLayout();
             this.prefixSuffixPanel.SuspendLayout();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             this.groupBox2.SuspendLayout();
-            this.rdsLoadPanel.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -530,7 +525,6 @@ namespace IQArchiveManager.Client
             // 
             // groupBox2
             // 
-            this.groupBox2.Controls.Add(this.btnFileMove);
             this.groupBox2.Controls.Add(this.editedClipsList);
             this.groupBox2.Controls.Add(this.btnFileDelete);
             this.groupBox2.Controls.Add(this.btnFileSave);
@@ -541,18 +535,6 @@ namespace IQArchiveManager.Client
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "File Settings";
             // 
-            // btnFileMove
-            // 
-            this.btnFileMove.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnFileMove.Location = new System.Drawing.Point(6, 246);
-            this.btnFileMove.Name = "btnFileMove";
-            this.btnFileMove.Size = new System.Drawing.Size(317, 23);
-            this.btnFileMove.TabIndex = 22;
-            this.btnFileMove.Text = "MOVE";
-            this.btnFileMove.UseVisualStyleBackColor = true;
-            this.btnFileMove.Click += new System.EventHandler(this.btnFileSave_Click);
-            // 
             // editedClipsList
             // 
             this.editedClipsList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -562,7 +544,7 @@ namespace IQArchiveManager.Client
             this.editedClipsList.IntegralHeight = false;
             this.editedClipsList.Location = new System.Drawing.Point(6, 19);
             this.editedClipsList.Name = "editedClipsList";
-            this.editedClipsList.Size = new System.Drawing.Size(317, 217);
+            this.editedClipsList.Size = new System.Drawing.Size(317, 250);
             this.editedClipsList.TabIndex = 21;
             // 
             // btnFileDelete
@@ -575,7 +557,7 @@ namespace IQArchiveManager.Client
             this.btnFileDelete.TabIndex = 20;
             this.btnFileDelete.Text = "DELETE";
             this.btnFileDelete.UseVisualStyleBackColor = true;
-            this.btnFileDelete.Click += new System.EventHandler(this.btnFileSave_Click);
+            this.btnFileDelete.Click += new System.EventHandler(this.btnFileDelete_Click);
             // 
             // btnFileSave
             // 
@@ -588,35 +570,6 @@ namespace IQArchiveManager.Client
             this.btnFileSave.Text = "SAVE";
             this.btnFileSave.UseVisualStyleBackColor = true;
             this.btnFileSave.Click += new System.EventHandler(this.btnFileSave_Click);
-            // 
-            // rdsLoadPanel
-            // 
-            this.rdsLoadPanel.Controls.Add(this.rdsLoadProgress);
-            this.rdsLoadPanel.Controls.Add(this.label10);
-            this.rdsLoadPanel.Location = new System.Drawing.Point(1095, 415);
-            this.rdsLoadPanel.Name = "rdsLoadPanel";
-            this.rdsLoadPanel.Size = new System.Drawing.Size(278, 65);
-            this.rdsLoadPanel.TabIndex = 15;
-            // 
-            // rdsLoadProgress
-            // 
-            this.rdsLoadProgress.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.rdsLoadProgress.Location = new System.Drawing.Point(6, 36);
-            this.rdsLoadProgress.Name = "rdsLoadProgress";
-            this.rdsLoadProgress.Size = new System.Drawing.Size(265, 23);
-            this.rdsLoadProgress.TabIndex = 1;
-            // 
-            // label10
-            // 
-            this.label10.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.label10.Location = new System.Drawing.Point(3, 11);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(268, 13);
-            this.label10.TabIndex = 0;
-            this.label10.Text = "Loading RDS...";
-            this.label10.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // recordingTimeLabel
             // 
@@ -891,34 +844,41 @@ namespace IQArchiveManager.Client
             this.parsedRTFramesToolStripMenuItem,
             this.rawPIFramesToolStripMenuItem});
             this.exportRDSToolStripMenuItem.Name = "exportRDSToolStripMenuItem";
-            this.exportRDSToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exportRDSToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
             this.exportRDSToolStripMenuItem.Text = "Export RDS";
             // 
             // rawPSFramesToolStripMenuItem
             // 
             this.rawPSFramesToolStripMenuItem.Name = "rawPSFramesToolStripMenuItem";
-            this.rawPSFramesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.rawPSFramesToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
             this.rawPSFramesToolStripMenuItem.Text = "Raw PS Frames...";
             this.rawPSFramesToolStripMenuItem.Click += new System.EventHandler(this.rawPSFramesToolStripMenuItem_Click);
             // 
             // rawRTFramesToolStripMenuItem
             // 
             this.rawRTFramesToolStripMenuItem.Name = "rawRTFramesToolStripMenuItem";
-            this.rawRTFramesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.rawRTFramesToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
             this.rawRTFramesToolStripMenuItem.Text = "Raw RT Frames...";
             this.rawRTFramesToolStripMenuItem.Click += new System.EventHandler(this.rawRTFramesToolStripMenuItem_Click);
             // 
             // parsedRTFramesToolStripMenuItem
             // 
             this.parsedRTFramesToolStripMenuItem.Name = "parsedRTFramesToolStripMenuItem";
-            this.parsedRTFramesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.parsedRTFramesToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
             this.parsedRTFramesToolStripMenuItem.Text = "Parsed RT Frames...";
             this.parsedRTFramesToolStripMenuItem.Click += new System.EventHandler(this.parsedRTFramesToolStripMenuItem_Click);
+            // 
+            // rawPIFramesToolStripMenuItem
+            // 
+            this.rawPIFramesToolStripMenuItem.Name = "rawPIFramesToolStripMenuItem";
+            this.rawPIFramesToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
+            this.rawPIFramesToolStripMenuItem.Text = "Raw PI Frames...";
+            this.rawPIFramesToolStripMenuItem.Click += new System.EventHandler(this.rawPIFramesToolStripMenuItem_Click);
             // 
             // rDSDSPToolStripMenuItem
             // 
             this.rDSDSPToolStripMenuItem.Name = "rDSDSPToolStripMenuItem";
-            this.rDSDSPToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.rDSDSPToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
             this.rDSDSPToolStripMenuItem.Text = "RDS DSP";
             // 
             // clipGrid1
@@ -940,20 +900,12 @@ namespace IQArchiveManager.Client
             this.transportControls.TabIndex = 0;
             this.transportControls.TimeChanged += new IQArchiveManager.Client.Pre.PreProcessorFileStreamReader_Event(this.transportControls_TimeChanged);
             // 
-            // rawPIFramesToolStripMenuItem
-            // 
-            this.rawPIFramesToolStripMenuItem.Name = "rawPIFramesToolStripMenuItem";
-            this.rawPIFramesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.rawPIFramesToolStripMenuItem.Text = "Raw PI Frames...";
-            this.rawPIFramesToolStripMenuItem.Click += new System.EventHandler(this.rawPIFramesToolStripMenuItem_Click);
-            // 
             // MainEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1385, 789);
             this.Controls.Add(this.recordingTimeLabel);
-            this.Controls.Add(this.rdsLoadPanel);
             this.Controls.Add(this.clipGrid1);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
@@ -978,7 +930,6 @@ namespace IQArchiveManager.Client
             this.panel2.PerformLayout();
             this.panel3.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
-            this.rdsLoadPanel.ResumeLayout(false);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -1021,11 +972,7 @@ namespace IQArchiveManager.Client
         private System.Windows.Forms.ListBox editedClipsList;
         private System.Windows.Forms.Button btnFileDelete;
         private System.Windows.Forms.Button btnFileSave;
-        private System.Windows.Forms.Button btnFileMove;
         private Components.ClipGrid clipGrid1;
-        private System.Windows.Forms.Panel rdsLoadPanel;
-        private System.Windows.Forms.ProgressBar rdsLoadProgress;
-        private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Label recordingTimeLabel;
         private System.Windows.Forms.ComboBox rdsPatchMethod;
         private System.Windows.Forms.Panel panel3;

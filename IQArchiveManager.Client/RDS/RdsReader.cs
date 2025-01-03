@@ -12,8 +12,6 @@ using System.Threading.Tasks;
 
 namespace IQArchiveManager.Client.RDS
 {
-    public delegate void RdsReader_ProgressEventArgs(int progress, int max);
-    public delegate void RdsReader_StatusEventArgs(bool ready);
     public delegate void RdsReader_PatchersEventArgs(RdsReader ctx, BaseRdsMode selected);
     
     public class RdsReader
@@ -23,8 +21,6 @@ namespace IQArchiveManager.Client.RDS
 
         private BasicRdsDecoder decoder = new BasicRdsDecoder();
 
-        public event RdsReader_StatusEventArgs OnStatusChanged;
-        public event RdsReader_ProgressEventArgs OnProgressUpdated;
         public event RdsReader_PatchersEventArgs OnPatcherUpdated;
 
         public BaseRdsMode[] rdsModes;
@@ -45,9 +41,6 @@ namespace IQArchiveManager.Client.RDS
             //Reset decoder
             decoder.Reset();
             rdsRtFramesParsed.Clear();
-
-            //Send event
-            OnStatusChanged?.Invoke(false);
         }
 
         /// <summary>
@@ -82,9 +75,6 @@ namespace IQArchiveManager.Client.RDS
 
             //Apply patch
             SwitchPatcher(patcher, ctx);
-
-            //Send event
-            OnStatusChanged?.Invoke(true);
         }
 
         public void SwitchPatcher(BaseRdsMode patcher, IRdsPatchContext ctx)

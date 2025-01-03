@@ -199,6 +199,7 @@
     <Compile Include="ClipDatabase.cs" />
     <Compile Include="RDS\RdsValue.cs" />
     <Compile Include="RDS\DSPs\RdsDspSdrpp.cs" />
+    <Compile Include="Util\AudioPlaybackProvider.cs" />
     <Compile Include="Util\MusicBrainzUtils.cs" />
     <Compile Include="Util\StorageFormattingUtils.cs" />
     <Compile Include="Util\TuneGenieCache.cs" />

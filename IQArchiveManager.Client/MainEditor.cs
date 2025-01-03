@@ -35,151 +35,7 @@ namespace IQArchiveManager.Client
             InitializeComponent();
         }
 
-        private volatile bool active = true;
-
         public const int AUDIO_SAMPLE_RATE = 20000;
-
-        private void MainEditor_Load(object sender, EventArgs e)
-        {
-            //Bind
-            MouseWheel += (object mSender, MouseEventArgs mE) => transportControls.ChangeZoom(Math.Max(-1, Math.Min(1, mE.Delta)));
-            
-            //Prepare output audio
-            audioPlayer = new AudioPlaybackProvider();
-            audioOutput = new WaveOut();
-            audioOutput.Init(audioPlayer);
-            audioOutput.Play();
-
-            //Set up FFT
-            fftRawBuffer = new byte[1024];
-            fftBuffer = UnsafeBuffer.Create(1024, out fftBufferPtr);
-            fftTimer = new System.Windows.Forms.Timer();
-            fftTimer.Interval = 1000 / 25;
-            fftTimer.Tick += FftTimer_Tick;
-            fftTimer.Start();
-
-            //Set up RDS
-            rdsTimer = new System.Windows.Forms.Timer();
-            rdsTimer.Interval = 50;
-            rdsTimer.Tick += RdsTimer_Tick;
-            rdsTimer.Start();
-            rds.OnStatusChanged += Rds_OnStatusChanged;
-            rds.OnProgressUpdated += Rds_OnProgressUpdated;
-            rds.OnPatcherUpdated += Rds_OnPatcherUpdated;
-
-            //Set up project
-            OpenNextFile();
-            UpdateEntryLayout();
-        }
-
-        private void Rds_OnPatcherUpdated(RdsReader ctx, BaseRdsMode selected)
-        {
-            BeginInvoke((MethodInvoker)delegate
-            {
-                //Clear options
-                rdsPatchMethod.SelectedIndexChanged -= rdsPatchMethod_SelectedIndexChanged;
-                rdsPatchMethod.BeginUpdate();
-                rdsPatchMethod.Items.Clear();
-
-                //Add all
-                for (int i = 0; i < rds.rdsModes.Length; i++)
-                {
-                    bool supported = ctx.IsPatcherRecommended(rds.rdsModes[i]);
-                    rdsPatchMethod.Items.Add("[" + (supported ? "✓" : "⚠") + "] " + rds.rdsModes[i].Label);
-                    if (rds.rdsModes[i] == selected)
-                        rdsPatchMethod.SelectedIndex = i;
-                }
-
-                //Finalize
-                rdsPatchMethod.EndUpdate();
-                rdsPatchMethod.SelectedIndexChanged += rdsPatchMethod_SelectedIndexChanged;
-
-                //Reset state
-                lastSelectFromRdsIndex = 0;
-            });
-        }
-
-        private void Rds_OnProgressUpdated(int progress, int max)
-        {
-            BeginInvoke((MethodInvoker)delegate
-            {
-                rdsLoadProgress.Maximum = max + 1;
-                rdsLoadProgress.Value = progress;
-            });
-        }
-
-        private void Rds_OnStatusChanged(bool ready)
-        {
-            BeginInvoke((MethodInvoker)delegate
-            {
-                rdsLoadPanel.Visible = !ready;
-            });
-        }
-
-        private bool forceRawRtDisplay = false;
-
-        private void UpdateRdsDisplay()
-        {
-            //Validate
-            if (audioPlayer.Stream == null)
-                return;
-
-            //Get values
-            RdsValue<string> psDat = rds.GetPsAtSample(audioPlayer.Stream.Position);
-            string ps = psDat == null ? null : psDat.value;
-            RdsValue<string> rtDat = rds.GetRtAtSample(audioPlayer.Stream.Position);
-            string rt = rtDat == null ? null : rtDat.value;
-
-            //Update PS
-            rdsPsLabel.Text = ps == null ? "" : ps;
-
-            //Process RT
-            try
-            {
-                //Attempt to format RT if enabled
-                bool showingRaw = true;
-                string formattedRt = rt == null ? "" : rt;
-                if (!forceRawRtDisplay && rt != null && rds.rdsModes[rdsPatchMethod.SelectedIndex].TryParse(rtDat, out string trackTitle, out string trackArtist, out string stationName, true))
-                {
-                    formattedRt = trackArtist + " - " + trackTitle;
-                    showingRaw = false;
-                }
-
-                //Apply
-                rdsRtLabel.Text = formattedRt;
-                rdsRtLabel.BackColor = showingRaw ? SystemColors.ControlLight : Color.FromArgb(192, 192, 255);
-            } catch
-            {
-                //Error
-                rdsRtLabel.Text = rt == null ? "" : rt;
-                rdsRtLabel.BackColor = Color.FromArgb(255, 192, 192);
-            }
-        }
-
-        private void RdsTimer_Tick(object sender, EventArgs e)
-        {
-            UpdateRdsDisplay();
-        }
-
-        private void FftTimer_Tick(object sender, EventArgs e)
-        {
-            //If there is no stream, wait
-            if (fftStream == null)
-                return;
-
-            //Read
-            fftStream.Read(fftRawBuffer, 0, 1024);
-
-            //Convert
-            for (int i = 0; i < 1024; i++)
-                fftBufferPtr[i] = -fftRawBuffer[i];
-
-            //Set
-            spectrumView1.WritePowerSamples(fftBufferPtr, 1024);
-            waterfallView1.WritePowerSamples(fftBufferPtr, 1024);
-            spectrumView1.DrawFrame();
-            waterfallView1.DrawFrame();
-        }
 
         private ClipDatabase db;
 
@@ -209,7 +65,55 @@ namespace IQArchiveManager.Client
 
         private int lastSelectFromRdsIndex = 0; // The last RT index used in SelectFromRds
 
-        private void Open(string wavPath)
+        private bool forceRawRtDisplay = false;
+
+        private void MainEditor_Load(object sender, EventArgs e)
+        {
+            //Bind
+            MouseWheel += (object mSender, MouseEventArgs mE) => transportControls.ChangeZoom(Math.Max(-1, Math.Min(1, mE.Delta)));
+
+            //Prepare output audio
+            audioPlayer = new AudioPlaybackProvider();
+            audioOutput = new WaveOut();
+            audioOutput.Init(audioPlayer);
+            audioOutput.Play();
+
+            //Set up FFT
+            fftRawBuffer = new byte[1024];
+            fftBuffer = UnsafeBuffer.Create(1024, out fftBufferPtr);
+            fftTimer = new System.Windows.Forms.Timer();
+            fftTimer.Interval = 1000 / 25;
+            fftTimer.Tick += FftTimer_Tick;
+
+            //Set up RDS
+            rdsTimer = new System.Windows.Forms.Timer();
+            rdsTimer.Interval = 50;
+            rdsTimer.Tick += RdsTimer_Tick;
+            rds.OnPatcherUpdated += Rds_OnPatcherUpdated;
+
+            //Set up project
+            OpenNextFile();
+            UpdateEntryLayout();
+        }
+
+        private void MainEditor_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            //Signal
+            transportControls.Close();
+
+            //Stop audio
+            audioOutput.Stop();
+            audioOutput.Dispose();
+
+            //Close file
+            CloseFile();
+        }
+
+        /// <summary>
+        /// Opens a new file. Assumes the active file is closed.
+        /// </summary>
+        /// <param name="wavPath"></param>
+        private void OpenFile(string wavPath)
         {
             //Get files
             wavFile = new FileInfo(wavPath);
@@ -261,7 +165,26 @@ namespace IQArchiveManager.Client
 
             //Reset state
             lastSelectFromRdsIndex = 0;
+
+            //Start timers
+            fftTimer.Start();
+            rdsTimer.Start();
         }
+
+        /// <summary>
+        /// Closes the active file.
+        /// </summary>
+        private void CloseFile()
+        {
+            //Stop timers
+            fftTimer.Stop();
+            rdsTimer.Stop();
+
+            //Close all associated streams
+            inputReader.Dispose();
+        }
+
+        #region RDS
 
         private void InitRds()
         {
@@ -367,43 +290,102 @@ namespace IQArchiveManager.Client
             SetupRdsMenu(dspId, true);
         }
 
-        class AudioPlaybackProvider : IWaveProvider
+        private void UpdateRdsDisplay()
         {
-            public PreProcessorFileStreamReader Stream { get; set; }
+            //Validate
+            if (audioPlayer.Stream == null)
+                return;
 
-            public WaveFormat WaveFormat => new WaveFormat(AUDIO_SAMPLE_RATE, 8, 1);
+            //Get values
+            RdsValue<string> psDat = rds.GetPsAtSample(audioPlayer.Stream.Position);
+            string ps = psDat == null ? null : psDat.value;
+            RdsValue<string> rtDat = rds.GetRtAtSample(audioPlayer.Stream.Position);
+            string rt = rtDat == null ? null : rtDat.value;
 
-            public int Read(byte[] buffer, int offset, int count)
+            //Update PS
+            rdsPsLabel.Text = ps == null ? "" : ps;
+
+            //Process RT
+            try
             {
-                //Perform as normal
-                int read = Stream == null ? 0 : Stream.Read(buffer, offset, count);
+                //Attempt to format RT if enabled
+                bool showingRaw = true;
+                string formattedRt = rt == null ? "" : rt;
+                if (!forceRawRtDisplay && rt != null && rds.rdsModes[rdsPatchMethod.SelectedIndex].TryParse(rtDat, out string trackTitle, out string trackArtist, out string stationName, true))
+                {
+                    formattedRt = trackArtist + " - " + trackTitle;
+                    showingRaw = false;
+                }
 
-                //Fill remaining buffer with 0
-                while (read < count)
-                    buffer[read++] = 0;
-
-                return count;
+                //Apply
+                rdsRtLabel.Text = formattedRt;
+                rdsRtLabel.BackColor = showingRaw ? SystemColors.ControlLight : Color.FromArgb(192, 192, 255);
+            }
+            catch
+            {
+                //Error
+                rdsRtLabel.Text = rt == null ? "" : rt;
+                rdsRtLabel.BackColor = Color.FromArgb(255, 192, 192);
             }
         }
 
-        private void MainEditor_FormClosing(object sender, FormClosingEventArgs e)
+        private void RdsTimer_Tick(object sender, EventArgs e)
         {
-            //Signal
-            transportControls.Close();
-
-            //Stop audio
-            audioOutput.Stop();
-            audioOutput.Dispose();
-
-            //Stop FFT
-            fftTimer.Stop();
-
-            //Set up RDS
-            rdsTimer.Stop();
-            rds.OnStatusChanged -= Rds_OnStatusChanged;
-            rds.OnProgressUpdated -= Rds_OnProgressUpdated;
-            rds.OnPatcherUpdated -= Rds_OnPatcherUpdated;
+            UpdateRdsDisplay();
         }
+
+        private void Rds_OnPatcherUpdated(RdsReader ctx, BaseRdsMode selected)
+        {
+            BeginInvoke((MethodInvoker)delegate
+            {
+                //Clear options
+                rdsPatchMethod.SelectedIndexChanged -= rdsPatchMethod_SelectedIndexChanged;
+                rdsPatchMethod.BeginUpdate();
+                rdsPatchMethod.Items.Clear();
+
+                //Add all
+                for (int i = 0; i < rds.rdsModes.Length; i++)
+                {
+                    bool supported = ctx.IsPatcherRecommended(rds.rdsModes[i]);
+                    rdsPatchMethod.Items.Add("[" + (supported ? "✓" : "⚠") + "] " + rds.rdsModes[i].Label);
+                    if (rds.rdsModes[i] == selected)
+                        rdsPatchMethod.SelectedIndex = i;
+                }
+
+                //Finalize
+                rdsPatchMethod.EndUpdate();
+                rdsPatchMethod.SelectedIndexChanged += rdsPatchMethod_SelectedIndexChanged;
+
+                //Reset state
+                lastSelectFromRdsIndex = 0;
+            });
+        }
+
+        #endregion RDS
+
+        #region FFT
+
+        private void FftTimer_Tick(object sender, EventArgs e)
+        {
+            //If there is no stream, wait
+            if (fftStream == null)
+                return;
+
+            //Read
+            fftStream.Read(fftRawBuffer, 0, 1024);
+
+            //Convert
+            for (int i = 0; i < 1024; i++)
+                fftBufferPtr[i] = -fftRawBuffer[i];
+
+            //Set
+            spectrumView1.WritePowerSamples(fftBufferPtr, 1024);
+            waterfallView1.WritePowerSamples(fftBufferPtr, 1024);
+            spectrumView1.DrawFrame();
+            waterfallView1.DrawFrame();
+        }
+
+        #endregion FFT
 
         private void btnAddClip_Click(object sender, EventArgs e)
         {
@@ -713,49 +695,6 @@ namespace IQArchiveManager.Client
             throw new Exception("Invalid state.");
         }
 
-        private void btnFileSave_Click(object sender, EventArgs e)
-        {
-            //Check if the user really wants to delete the file
-            if (sender == btnFileDelete && MessageBox.Show($"Are you sure you want to delete {wavFile.Name}?", "Delete File", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
-                return;
-            
-            //Close all associated streams
-            inputReader.Dispose();
-
-            //Wait a sec for threads to catch up
-            Thread.Sleep(500);
-
-            //If we're moving it, transfer all the files rather than deleting them
-            if (sender == btnFileMove)
-            {
-                MoveEditFileHelper(wavFile);
-                MoveEditFileHelper(postFile);
-                MoveEditFileHelper(infoFile);
-            } else
-            {
-                //Delete the metadata file
-                infoFile.Delete();
-
-                //Finalize the post file
-                if (sender == btnFileSave)
-                    File.Move(postFile.FullName, postFinalFile.FullName);
-
-                //If we made no edits, delete the WAV file too
-                if (sender == btnFileDelete)
-                    wavFile.Delete();
-            }
-
-            //Finally, open the next file
-            OpenNextFile();
-        }
-
-        private void MoveEditFileHelper(FileInfo file)
-        {
-            if (file == null || !file.Exists)
-                return;
-            File.Move(file.FullName, file.FullName.Replace(db.Enviornment.EditDir, db.Enviornment.MoveDir));
-        }
-
         public void OpenNextFile()
         {
             //Get list of files in working dir
@@ -771,7 +710,7 @@ namespace IQArchiveManager.Client
                 //Look for a metadata file
                 if (File.Exists(f + ".iqpre"))
                 {
-                    Open(f);
+                    OpenFile(f);
                     return;
                 }
             }
@@ -996,6 +935,46 @@ namespace IQArchiveManager.Client
         public long GetSampleFromTime(DateTime time)
         {
             return transportControls.TimeToSample(time);
+        }
+
+        private void btnFileDelete_Click(object sender, EventArgs e)
+        {
+            //Check if the user really wants to delete the file
+            if (MessageBox.Show($"Are you sure you want to delete {wavFile.Name}?", "Delete File", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                return;
+
+            //Close file
+            CloseFile();
+
+            //Wait a sec for threads to catch up
+            Thread.Sleep(500);
+
+            //Delete the metadata file
+            infoFile.Delete();
+
+            //Delete WAV file
+            wavFile.Delete();
+
+            //Finally, open the next file
+            OpenNextFile();
+        }
+
+        private void btnFileSave_Click(object sender, EventArgs e)
+        {
+            //Close file
+            CloseFile();
+
+            //Wait a sec for threads to catch up
+            Thread.Sleep(500);
+
+            //Delete the metadata file
+            infoFile.Delete();
+
+            //Finalize the post file
+            File.Move(postFile.FullName, postFinalFile.FullName);
+
+            //Finally, open the next file
+            OpenNextFile();
         }
     }
 }
