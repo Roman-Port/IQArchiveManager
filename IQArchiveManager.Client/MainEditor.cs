@@ -53,9 +53,10 @@ namespace IQArchiveManager.Client
             //Set up FFT
             fftRawBuffer = new byte[1024];
             fftBuffer = UnsafeBuffer.Create(1024, out fftBufferPtr);
-            fftThread = new Thread(FftWorkerThread);
-            fftThread.Name = "FFT Worker Thread";
-            fftThread.Start();
+            fftTimer = new System.Windows.Forms.Timer();
+            fftTimer.Interval = 1000 / 25;
+            fftTimer.Tick += FftTimer_Tick;
+            fftTimer.Start();
 
             //Set up RDS
             rdsTimer = new System.Windows.Forms.Timer();
@@ -160,50 +161,24 @@ namespace IQArchiveManager.Client
             UpdateRdsDisplay();
         }
 
-        private void FftWorkerThread()
+        private void FftTimer_Tick(object sender, EventArgs e)
         {
-            Stopwatch tsu = new Stopwatch();
-            tsu.Start();
-            while (active)
-            {
-                //If there is no stream, wait
-                if (fftStream == null)
-                {
-                    Thread.Sleep(50);
-                    continue;
-                }
-                
-                //Reset
-                tsu.Restart();
-                
-                //Read
-                fftStream.Read(fftRawBuffer, 0, 1024);
+            //If there is no stream, wait
+            if (fftStream == null)
+                return;
 
-                //Convert
-                for (int i = 0; i < 1024; i++)
-                    fftBufferPtr[i] = -fftRawBuffer[i];
+            //Read
+            fftStream.Read(fftRawBuffer, 0, 1024);
 
-                //Set
-                try
-                {
-                    Invoke((MethodInvoker)delegate
-                    {
-                        if (!active)
-                            return;
-                        spectrumView1.WritePowerSamples(fftBufferPtr, 1024);
-                        waterfallView1.WritePowerSamples(fftBufferPtr, 1024);
-                        spectrumView1.DrawFrame();
-                        waterfallView1.DrawFrame();
-                    });
-                } catch
-                {
+            //Convert
+            for (int i = 0; i < 1024; i++)
+                fftBufferPtr[i] = -fftRawBuffer[i];
 
-                }
-
-                //Wait for delay
-                Thread.Sleep((int)Math.Max(0, (1000 / 25) - tsu.ElapsedMilliseconds));
-            }
-            fftBuffer.Dispose();
+            //Set
+            spectrumView1.WritePowerSamples(fftBufferPtr, 1024);
+            waterfallView1.WritePowerSamples(fftBufferPtr, 1024);
+            spectrumView1.DrawFrame();
+            waterfallView1.DrawFrame();
         }
 
         private ClipDatabase db;
@@ -218,7 +193,7 @@ namespace IQArchiveManager.Client
         private WaveOut audioOutput;
         private AudioPlaybackProvider audioPlayer;
 
-        private Thread fftThread;
+        private System.Windows.Forms.Timer fftTimer;
         private byte[] fftRawBuffer;
         private UnsafeBuffer fftBuffer;
         private float* fftBufferPtr;
@@ -415,11 +390,13 @@ namespace IQArchiveManager.Client
         {
             //Signal
             transportControls.Close();
-            active = false;
 
             //Stop audio
             audioOutput.Stop();
             audioOutput.Dispose();
+
+            //Stop FFT
+            fftTimer.Stop();
 
             //Set up RDS
             rdsTimer.Stop();
