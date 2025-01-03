@@ -201,6 +201,7 @@
     <Compile Include="RDS\DSPs\RdsDspSdrpp.cs" />
     <Compile Include="Util\AudioPlaybackProvider.cs" />
     <Compile Include="Util\MusicBrainzUtils.cs" />
+    <Compile Include="Util\PostFileWriter.cs" />
     <Compile Include="Util\StorageFormattingUtils.cs" />
     <Compile Include="Util\TuneGenieCache.cs" />
     <Compile Include="Util\TuneGenieItem.cs" />

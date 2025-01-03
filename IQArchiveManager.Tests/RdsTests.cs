@@ -1,4 +1,4 @@
-﻿using IQArchiveManager.Client.RDS.Modes;
+﻿using IQArchiveManager.Client.RDS.Parser.Modes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 

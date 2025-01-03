@@ -1,4 +1,5 @@
 ﻿using IQArchiveManager.Common;
+using IQArchiveManager.Common.IO.Editor.Post;
 using IQArchiveManager.Common.IO.IqaWriter;
 using Newtonsoft.Json;
 using RomanPort.LibSDR.Components.IO.WAV;
@@ -27,13 +28,33 @@ namespace IQArchiveManager.Server.Post
         private string outputDir;
         private string tempDir;
 
+        private PostEditFile ReadInfo()
+        {
+            //Read text
+            string rawInfo = File.ReadAllText(postFilePath);
+
+            //Check that it's valid (older files were just an array)
+            if (!rawInfo.StartsWith("{"))
+                throw new Exception("Invalid post file.");
+
+            //Serialize
+            PostEditFile info = JsonConvert.DeserializeObject<PostEditFile>(rawInfo);
+
+            //Check that we support this editor version. If not, abort out because the data struct may be altered!
+            if (info.EditorVersion > Constants.CURRENT_EDITOR_VERSION)
+                throw new Exception($"Editor version of file exceeds current editor version. Obtain a newer version of this program.");
+
+            return info;
+        }
+
         public void Process(ref string status)
         {
             //Update status
             status = $"POST-PROCESSING - Preparing... - {wavFilePath}";
 
             //Load the info
-            TrackEditInfo[] edits = JsonConvert.DeserializeObject<TrackEditInfo[]>(File.ReadAllText(postFilePath));
+            PostEditFile editorInfo = ReadInfo();
+            TrackEditInfo[] edits = editorInfo.Edits.ToArray();
 
             //Open the WAV file
             FileStream wav = new FileStream(wavFilePath, FileMode.Open, FileAccess.Read);
@@ -54,8 +75,8 @@ namespace IQArchiveManager.Server.Post
             long[] editSamplesEnd = new long[edits.Length];
             for (int i = 0; i < edits.Length; i++)
             {
-                editSamplesStart[i] = (long)(edits[i].start * (long)info.sampleRate);
-                editSamplesEnd[i] = (long)(edits[i].end * (long)info.sampleRate);
+                editSamplesStart[i] = (long)(edits[i].Start * (long)info.sampleRate);
+                editSamplesEnd[i] = (long)(edits[i].End * (long)info.sampleRate);
             }
 
             //Total up the number of samples. This is just for status reporting
@@ -67,12 +88,8 @@ namespace IQArchiveManager.Server.Post
             //Begin encoding each file
             for (int i = 0; i < edits.Length; i++)
             {
-                //Check that we support this editor version. If not, abort out because the data struct may be altered!
-                if (edits[i].editorVersion > Constants.CURRENT_EDITOR_VERSION)
-                    throw new Exception($"Editor version of clip exceeds current editor version. Obtain a newer version of this program.");
-
                 //Validate
-                if (edits[i].data == null || edits[i].data.Id == null)
+                if (edits[i].Data == null || edits[i].Data.Id == null)
                     throw new Exception("Clip has no ID.");
 
                 //Calculate the start and end byte of the file
@@ -83,18 +100,18 @@ namespace IQArchiveManager.Server.Post
                 wav.Position = startByte;
 
                 //Open the IQA file writer
-                using (FileStream output = new FileStream(outputDir + Path.DirectorySeparatorChar + edits[i].data.Id + ".iqa", FileMode.Create))
+                using (FileStream output = new FileStream(outputDir + Path.DirectorySeparatorChar + edits[i].Data.Id + ".iqa", FileMode.Create))
                 using (IqaFileWriter writer = new IqaFileWriter(output))
                 {
                     //Write ID block
                     using (IqaSegmentWriter segment = writer.BeginBlock("IQID"))
                     {
-                        byte[] idData = Encoding.ASCII.GetBytes(edits[i].data.Id);
+                        byte[] idData = Encoding.ASCII.GetBytes(edits[i].Data.Id);
                         segment.Write(idData, 0, idData.Length);
                     }
 
                     //Write info block
-                    byte[] infoPayload = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(edits[i].data));
+                    byte[] infoPayload = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(edits[i].Data));
                     using (IqaSegmentWriter segment = writer.BeginBlock("INFO"))
                         segment.Write(infoPayload, 0, infoPayload.Length);
 
@@ -107,7 +124,7 @@ namespace IQArchiveManager.Server.Post
                         do
                         {
                             //Update status
-                            status = $"POST-PROCESSING - Clip {i + 1} of {edits.Length} [{edits[i].data.Id}] - {(((double)totalSamplesComputed / totalSamples) * 100).ToString("F")}% total - {wavFilePath}";
+                            status = $"POST-PROCESSING - Clip {i + 1} of {edits.Length} [{edits[i].Data.Id}] - {(((double)totalSamplesComputed / totalSamples) * 100).ToString("F")}% total - {wavFilePath}";
                             
                             //Calculate how much is readable and then read
                             read = wav.Read(buffer, 0, (int)Math.Min(buffer.Length, endByte - wav.Position));
@@ -123,11 +140,23 @@ namespace IQArchiveManager.Server.Post
             //Clean up
             wav.Close();
 
-            //Now that all files have been processed, delete everything involved
-            File.Move(wavFilePath, wavFilePath.Replace("input", "temp"));
-            File.Move(postFilePath, postFilePath.Replace("input", "temp"));
-            if (File.Exists(preFilePath))
-                File.Move(preFilePath, preFilePath.Replace("input", "temp"));
+            //Now that all files have been processed, delete or move everything involved
+            if (editorInfo.Delete)
+            {
+                //Delete
+                File.Delete(wavFilePath);
+                File.Delete(postFilePath);
+                if (File.Exists(preFilePath))
+                    File.Delete(preFilePath);
+            } else
+            {
+                // BUG -- If this is in a directory with the name "input" for some reason this will not put it in the right place!!
+                // Valve pls fix (it's 1:30 AM!)
+                File.Move(wavFilePath, wavFilePath.Replace("input", "temp"));
+                File.Move(postFilePath, postFilePath.Replace("input", "temp"));
+                if (File.Exists(preFilePath))
+                    File.Move(preFilePath, preFilePath.Replace("input", "temp"));
+            }
         }
     }
 }

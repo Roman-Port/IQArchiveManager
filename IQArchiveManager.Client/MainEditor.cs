@@ -4,6 +4,7 @@ using IQArchiveManager.Client.RDS;
 using IQArchiveManager.Client.RDS.Parser;
 using IQArchiveManager.Client.Util;
 using IQArchiveManager.Common;
+using IQArchiveManager.Common.IO.Editor.Post;
 using IQArchiveManager.Common.IO.RDS;
 using NAudio.Wave;
 using Newtonsoft.Json;
@@ -41,10 +42,9 @@ namespace IQArchiveManager.Client
 
         private FileInfo wavFile;
         private FileInfo infoFile;
-        private FileInfo postFile;
-        private FileInfo postFinalFile;
 
         private PreProcessorFileReader inputReader;
+        private PostFileWriter outputWriter;
 
         private WaveOut audioOutput;
         private AudioPlaybackProvider audioPlayer;
@@ -118,8 +118,8 @@ namespace IQArchiveManager.Client
             //Get files
             wavFile = new FileInfo(wavPath);
             infoFile = new FileInfo(wavPath + ".iqpre");
-            postFile = new FileInfo(wavPath + ".iqpost");
-            postFinalFile = new FileInfo(wavPath + ".iqedit");
+            FileInfo postFile = new FileInfo(wavPath + ".iqpost");
+            FileInfo postFinalFile = new FileInfo(wavPath + ".iqedit");
 
             //Set UI
             Text = $"Editing {wavFile.Name}...";
@@ -130,12 +130,12 @@ namespace IQArchiveManager.Client
             inputFlagRds.Checked = true;
             inputNotes.Text = "";
 
-            //It's unlikely, but if we have a post file, load it into the list
-            if (postFile.Exists)
-            {
-                foreach (var e in JsonConvert.DeserializeObject<List<TrackEditInfo>>(File.ReadAllText(postFile.FullName)))
-                    editedClipsList.Items.Add(e.tip);
-            }
+            //Initialize the post file
+            outputWriter = new PostFileWriter(postFile.FullName, postFinalFile.FullName);
+
+            //Add any existing items in the post file to the list
+            foreach (var e in outputWriter.Edits)
+                editedClipsList.Items.Add(e.Data.ToString());
 
             //Set buttons
             btnFileSave.Enabled = editedClipsList.Items.Count != 0;
@@ -432,26 +432,13 @@ namespace IQArchiveManager.Client
                 EditorVersion = Constants.CURRENT_EDITOR_VERSION
             };
 
-            //Load the existing edit file, if any
-            List<TrackEditInfo> addedEdits;
-            if (File.Exists(postFile.FullName))
-                addedEdits = JsonConvert.DeserializeObject<List<TrackEditInfo>>(File.ReadAllText(postFile.FullName));
-            else
-                addedEdits = new List<TrackEditInfo>();
-
-            //Add edit
-            string tip = clip.Station + " / " + clip.Artist + " / " + clip.Title;
-            addedEdits.Add(new TrackEditInfo
+            //Add to output file
+            outputWriter.AddEdit(new TrackEditInfo
             {
-                data = clip,
-                start = timeIn,
-                end = timeOut,
-                tip = tip,
-                editorVersion = Constants.CURRENT_EDITOR_VERSION
+                Data = clip,
+                Start = timeIn,
+                End = timeOut
             });
-
-            //Write edit file
-            File.WriteAllText(postFile.FullName, JsonConvert.SerializeObject(addedEdits));
 
             //Add to clip database
             db.AddClip(clip);
@@ -463,7 +450,7 @@ namespace IQArchiveManager.Client
             matchedRdsParser = -1;
 
             //Add name to list just for notetaking
-            editedClipsList.Items.Add(tip);
+            editedClipsList.Items.Add(clip.ToString());
             btnFileSave.Enabled = editedClipsList.Items.Count != 0;
             btnFileDelete.Enabled = editedClipsList.Items.Count == 0;
             btnAddClip.Enabled = false;
@@ -961,6 +948,20 @@ namespace IQArchiveManager.Client
 
         private void btnFileSave_Click(object sender, EventArgs e)
         {
+            //Prompt if the user wants to delete the original
+            bool delete;
+            switch (MessageBox.Show("Would you like to delete the original file after clips are saved?", "Finish Edit", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information))
+            {
+                case DialogResult.Yes:
+                    delete = true;
+                    break;
+                case DialogResult.No:
+                    delete = false;
+                    break;
+                default:
+                    return;
+            }
+
             //Close file
             CloseFile();
 
@@ -971,7 +972,7 @@ namespace IQArchiveManager.Client
             infoFile.Delete();
 
             //Finalize the post file
-            File.Move(postFile.FullName, postFinalFile.FullName);
+            outputWriter.Finalize(delete);
 
             //Finally, open the next file
             OpenNextFile();

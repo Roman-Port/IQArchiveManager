@@ -123,6 +123,11 @@ namespace IQArchiveManager.Common
                 Flags &= ~bitmask;
         }
 
+        public override string ToString()
+        {
+            return $"{Station} -> {Artist} - {Title}";
+        }
+
         /* LEGACY NAMES */
 
         [JsonProperty("id")]
