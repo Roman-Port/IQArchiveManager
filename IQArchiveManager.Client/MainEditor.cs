@@ -393,6 +393,7 @@ namespace IQArchiveManager.Client
             double timeIn = transportControls.EditStartSeconds;
             double timeOut = transportControls.EditEndSeconds;
             double timeToEnd = ((double)audioPlayer.Stream.Length / AUDIO_SAMPLE_RATE) - timeOut;
+            double length = timeOut - timeIn;
 
             //Validate
             if (timeIn > timeOut || timeToEnd < 0)
@@ -429,7 +430,9 @@ namespace IQArchiveManager.Client
                 RdsParsed = matchedRds == null ? null : Convert.ToBase64String(Encoding.ASCII.GetBytes(matchedRds)),
                 RdsParser = matchedRds == null ? -1 : matchedRdsParser,
                 EditedAt = DateTime.UtcNow,
-                EditorVersion = Constants.CURRENT_EDITOR_VERSION
+                EditorVersion = Constants.CURRENT_EDITOR_VERSION,
+                Length = length,
+                OriginalFileTime = wavFile.LastWriteTime
             };
 
             //Add to output file

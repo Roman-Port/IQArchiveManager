@@ -42,6 +42,12 @@ namespace IQArchiveManager.Common
         [JsonProperty("v")]
         public int EditorVersion { get; set; } // Version of the editor this was entered at. This was added later, so nulls should be interpreted at version 0.
 
+        [JsonProperty("l")]
+        public double? Length { get; set; } // Length of the file in seconds. This was added later, so may be null.
+
+        [JsonProperty("ft")]
+        public DateTime? OriginalFileTime { get; set; } // Modifed date of original file. This was added later, so may be null.
+
         /* USER DATA */
 
         [JsonProperty("uc")]

@@ -62,6 +62,9 @@ namespace IQArchiveManager.Client.Components
 
         private int lastMouseCursorX = -1;
 
+        public DateTime SourceBeginTime => sourceBegin;
+        public DateTime SourceEndTime => sourceEnd;
+
         public double EditStartSeconds { get => (double)selectionStartSample / MainEditor.AUDIO_SAMPLE_RATE; }
         public double EditEndSeconds { get => (double)selectionStopSample / MainEditor.AUDIO_SAMPLE_RATE; }
         public event PreProcessorFileStreamReader_Event TimeChanged;

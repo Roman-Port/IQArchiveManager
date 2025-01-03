@@ -26,6 +26,10 @@ namespace IQArchiveManager.Client.Util
             {
                 //Load data file if it exists
                 data = JsonConvert.DeserializeObject<PostEditFile>(File.ReadAllText(filename));
+
+                //Abort if newer
+                if (data.EditorVersion > Constants.CURRENT_EDITOR_VERSION)
+                    throw new Exception("Editor info for this file is newer than this editor is. Obtain a newer version of the software.");
             } else
             {
                 //Initialize new
