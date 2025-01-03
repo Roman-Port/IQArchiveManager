@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IQArchiveManager.Client.RDS.Modes
+namespace IQArchiveManager.Client.RDS.Parser.Modes
 {
     public class RdsPatchCumulus : BaseRdsMode
     {

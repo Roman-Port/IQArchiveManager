@@ -1,6 +1,5 @@
 ﻿using Csv;
 using IQArchiveManager.Client.Components;
-using IQArchiveManager.Client.RDS.Modes;
 using IQArchiveManager.Client.RDS;
 using IQArchiveManager.Client.Util;
 using IQArchiveManager.Common;
@@ -17,7 +16,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using IQArchiveManager.Client.RDS.Modes.Csv;
+using IQArchiveManager.Client.RDS.Parser;
 
 namespace IQArchiveManager.Client
 {
@@ -30,7 +29,7 @@ namespace IQArchiveManager.Client
         }
 
         private ClipDatabase db = null;
-        private BaseRdsMode[] rdsModes;
+        private RdsParserStore parsers;
         private List<ToolStripMenuItem> rdsMenuItems = new List<ToolStripMenuItem>();
         private Timer searchTimer;
 
@@ -82,16 +81,7 @@ namespace IQArchiveManager.Client
             this.db = db;
 
             //Init RDS modes
-            rdsModes = new BaseRdsMode[]
-            {
-                new RdsPatchNative(),
-                new RdsPatchNativeFlipped(),
-                new RdsPatchCsv(db),
-                new RdsPatchKzcr(db),
-                new RdsPatchKzcrLegacy(db),
-                new RdsPatchCumulus(),
-                new RdsPatchNoDelimiters(db)
-            };
+            parsers = new RdsParserStore(db);
 
             //Refresh
             RefreshClips();
@@ -145,7 +135,7 @@ namespace IQArchiveManager.Client
             rdsMenuItems.Clear();
 
             //Create RDS items
-            foreach (var r in rdsModes)
+            foreach (var r in parsers.Modes)
             {
                 if (r.HasSetupWindow)
                 {
@@ -290,7 +280,7 @@ namespace IQArchiveManager.Client
 
         private void btnOpenEditor_Click(object sender, EventArgs e)
         {
-            new MainEditor(db, rdsModes).ShowDialog();
+            new MainEditor(db, parsers).ShowDialog();
             RefreshClips();
         }
 

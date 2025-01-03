@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IQArchiveManager.Client.RDS.Modes.Csv.Db
+namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv.Db
 {
     /// <summary>
     /// Manages items in a station's history, loaded from CSV

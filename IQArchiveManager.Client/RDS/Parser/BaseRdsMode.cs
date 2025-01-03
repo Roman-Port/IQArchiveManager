@@ -1,4 +1,4 @@
-﻿using IQArchiveManager.Client.RDS.Modes;
+﻿using IQArchiveManager.Client.RDS.Parser;
 using RomanPort.LibSDR.Components.Digital.RDS;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace IQArchiveManager.Client.RDS
+namespace IQArchiveManager.Client.RDS.Parser
 {
     public abstract class BaseRdsMode
     {

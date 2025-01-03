@@ -1,7 +1,7 @@
 ﻿using Csv;
 using IQArchiveManager.Client.Pre;
 using IQArchiveManager.Client.RDS;
-using IQArchiveManager.Client.RDS.Modes;
+using IQArchiveManager.Client.RDS.Parser;
 using IQArchiveManager.Client.Util;
 using IQArchiveManager.Common;
 using IQArchiveManager.Common.IO.RDS;
@@ -28,10 +28,10 @@ namespace IQArchiveManager.Client
 {
     public unsafe partial class MainEditor : Form, IRdsPatchContext
     {
-        public MainEditor(ClipDatabase db, BaseRdsMode[] rdsModes)
+        public MainEditor(ClipDatabase db, RdsParserStore parser)
         {
             this.db = db;
-            rds = new RdsReader(rdsModes);
+            rds = new RdsReader(parser);
             InitializeComponent();
         }
 

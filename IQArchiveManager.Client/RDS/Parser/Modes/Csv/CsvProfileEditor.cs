@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace IQArchiveManager.Client.RDS.Modes.Csv
+namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
 {
     public partial class CsvProfileEditor : UserControl
     {

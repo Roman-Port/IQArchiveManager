@@ -1,4 +1,4 @@
-﻿namespace IQArchiveManager.Client.RDS.Modes.Csv
+﻿namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
 {
     partial class CsvProfileEditor
     {

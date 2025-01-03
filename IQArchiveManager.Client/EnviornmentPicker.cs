@@ -1,6 +1,5 @@
 ﻿using IQArchiveManager.Client.Components;
 using IQArchiveManager.Client.Db;
-using IQArchiveManager.Client.RDS.Modes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -13,7 +12,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Net.WebRequestMethods;
 
 namespace IQArchiveManager.Client
 {
@@ -38,8 +36,6 @@ namespace IQArchiveManager.Client
         private void btnApply_Click(object sender, EventArgs e)
         {
             Close();
-            //Apply
-            //RdsPatchNoDelimiters.BRANDING_REMOVAL = Brandings;
         }
 
         private bool updatingOption = false;

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IQArchiveManager.Client.RDS.Modes
+namespace IQArchiveManager.Client.RDS.Parser.Modes
 {
     /// <summary>
     /// Patcher for pulling parts from PS (say that ten times fast).

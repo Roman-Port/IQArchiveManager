@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IQArchiveManager.Client.RDS
+namespace IQArchiveManager.Client.RDS.Parser
 {
     public enum RdsModeId
     {

@@ -1,4 +1,4 @@
-﻿using IQArchiveManager.Client.RDS.Modes.Csv.Db;
+﻿using IQArchiveManager.Client.RDS.Parser.Modes.Csv.Db;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IQArchiveManager.Client.RDS.Modes.Csv
+namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
 {
     class RdsPatchCsv : BaseRdsMode
     {

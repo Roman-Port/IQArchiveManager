@@ -1,5 +1,6 @@
 ﻿using IQArchiveManager.Client.Pre;
-using IQArchiveManager.Client.RDS.Modes;
+using IQArchiveManager.Client.RDS.Parser.Modes;
+using IQArchiveManager.Client.RDS.Parser;
 using IQArchiveManager.Common.IO.RDS;
 using RomanPort.LibSDR.Components.Digital.RDS.Client;
 using System;
@@ -28,10 +29,10 @@ namespace IQArchiveManager.Client.RDS
 
         public BaseRdsMode[] rdsModes;
 
-        public RdsReader(BaseRdsMode[] rdsModes)
+        public RdsReader(RdsParserStore parser)
         {
             //Set
-            this.rdsModes = rdsModes;
+            this.rdsModes = parser.Modes;
         }
 
         public List<RdsValue<string>> PsFrames => decoder.PsFrames;

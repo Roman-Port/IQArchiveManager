@@ -164,36 +164,37 @@
     <Compile Include="Pre\PreProcessorFileStreamReader.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RDS\BaseRdsMode.cs" />
+    <Compile Include="RDS\Parser\BaseRdsMode.cs" />
     <Compile Include="RDS\BasicRdsDecoder.cs" />
     <Compile Include="RDS\InFileRdsDsp.cs" />
     <Compile Include="RDS\IRdsDsp.cs" />
-    <Compile Include="RDS\IRdsPatchContext.cs" />
-    <Compile Include="RDS\Modes\Csv\Db\CsvHistoryDatabase.cs" />
-    <Compile Include="RDS\Modes\Csv\Db\CsvPlaybackItem.cs" />
-    <Compile Include="RDS\Modes\Csv\CsvProfile.cs" />
-    <Compile Include="RDS\Modes\Csv\CsvProfileConfigForm.cs">
+    <Compile Include="RDS\Parser\IRdsPatchContext.cs" />
+    <Compile Include="RDS\Parser\Modes\Csv\Db\CsvHistoryDatabase.cs" />
+    <Compile Include="RDS\Parser\Modes\Csv\Db\CsvPlaybackItem.cs" />
+    <Compile Include="RDS\Parser\Modes\Csv\CsvProfile.cs" />
+    <Compile Include="RDS\Parser\Modes\Csv\CsvProfileConfigForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="RDS\Modes\Csv\CsvProfileConfigForm.Designer.cs">
+    <Compile Include="RDS\Parser\Modes\Csv\CsvProfileConfigForm.Designer.cs">
       <DependentUpon>CsvProfileConfigForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="RDS\Modes\Csv\CsvProfileEditor.cs">
+    <Compile Include="RDS\Parser\Modes\Csv\CsvProfileEditor.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="RDS\Modes\Csv\CsvProfileEditor.Designer.cs">
+    <Compile Include="RDS\Parser\Modes\Csv\CsvProfileEditor.Designer.cs">
       <DependentUpon>CsvProfileEditor.cs</DependentUpon>
     </Compile>
-    <Compile Include="RDS\Modes\Csv\RdsPatchCsv.cs" />
-    <Compile Include="RDS\Modes\PsParsedPatch.cs" />
-    <Compile Include="RDS\RdsModeId.cs" />
-    <Compile Include="RDS\Modes\RdsPatchKzcrLegacy.cs" />
-    <Compile Include="RDS\Modes\RdsPatchNoDelimiters.cs" />
-    <Compile Include="RDS\RdsPatch.cs" />
-    <Compile Include="RDS\Modes\PatchHelper.cs" />
-    <Compile Include="RDS\Modes\RdsPatchCumulus.cs" />
-    <Compile Include="RDS\Modes\RdsPatchKzcr.cs" />
-    <Compile Include="RDS\Modes\RdsPatchNative.cs" />
+    <Compile Include="RDS\Parser\Modes\Csv\RdsPatchCsv.cs" />
+    <Compile Include="RDS\Parser\Modes\PsParsedPatch.cs" />
+    <Compile Include="RDS\Parser\Modes\RdsPatchNativeFlipped.cs" />
+    <Compile Include="RDS\Parser\RdsParserStore.cs" />
+    <Compile Include="RDS\Parser\RdsModeId.cs" />
+    <Compile Include="RDS\Parser\Modes\RdsPatchKzcrLegacy.cs" />
+    <Compile Include="RDS\Parser\Modes\RdsPatchNoDelimiters.cs" />
+    <Compile Include="RDS\Parser\PatchHelper.cs" />
+    <Compile Include="RDS\Parser\Modes\RdsPatchCumulus.cs" />
+    <Compile Include="RDS\Parser\Modes\RdsPatchKzcr.cs" />
+    <Compile Include="RDS\Parser\Modes\RdsPatchNative.cs" />
     <Compile Include="RDS\RdsReader.cs" />
     <Compile Include="ClipDatabase.cs" />
     <Compile Include="RDS\RdsValue.cs" />
@@ -247,10 +248,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="RDS\Modes\Csv\CsvProfileConfigForm.resx">
+    <EmbeddedResource Include="RDS\Parser\Modes\Csv\CsvProfileConfigForm.resx">
       <DependentUpon>CsvProfileConfigForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="RDS\Modes\Csv\CsvProfileEditor.resx">
+    <EmbeddedResource Include="RDS\Parser\Modes\Csv\CsvProfileEditor.resx">
       <DependentUpon>CsvProfileEditor.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="packages.config" />

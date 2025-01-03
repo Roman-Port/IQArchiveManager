@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IQArchiveManager.Client.RDS.Modes.Csv
+namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
 {
     public class CsvProfile
     {
