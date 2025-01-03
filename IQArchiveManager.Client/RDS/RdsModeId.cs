@@ -13,6 +13,7 @@ namespace IQArchiveManager.Client.RDS
         NO_DELIMITERS = 2,
         KZCR = 3,
         KZCR_LEGACY = 4,
-        CSV = 5
+        CSV = 5,
+        NATIVE_FLIPPED = 6
     }
 }

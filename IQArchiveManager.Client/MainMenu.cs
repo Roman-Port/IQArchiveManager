@@ -85,6 +85,7 @@ namespace IQArchiveManager.Client
             rdsModes = new BaseRdsMode[]
             {
                 new RdsPatchNative(),
+                new RdsPatchNativeFlipped(),
                 new RdsPatchCsv(db),
                 new RdsPatchKzcr(db),
                 new RdsPatchKzcrLegacy(db),
