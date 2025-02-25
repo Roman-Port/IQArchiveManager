@@ -33,12 +33,29 @@ namespace IQArchiveManager.Server.Post
             //Read text
             string rawInfo = File.ReadAllText(postFilePath);
 
-            //Check that it's valid (older files were just an array)
-            if (!rawInfo.StartsWith("{"))
-                throw new Exception("Invalid post file.");
+            //Check if it's a newer format file or an older format file
+            PostEditFile info;
+            if (rawInfo.StartsWith("[")) // Old format
+            {
+                //This older format just has an array of edits -- Read them
+                List<TrackEditInfo> edits = JsonConvert.DeserializeObject<List<TrackEditInfo>>(rawInfo);
 
-            //Serialize
-            PostEditFile info = JsonConvert.DeserializeObject<PostEditFile>(rawInfo);
+                //Wrap into the new file format
+                info = new PostEditFile
+                {
+                    EditorVersion = 0,
+                    Edits = edits,
+                    LastEdited = DateTime.MinValue,
+                    Delete = false
+                };
+            } else if (rawInfo.StartsWith("{")) // New format
+            {
+                //Deserialize
+                info = JsonConvert.DeserializeObject<PostEditFile>(rawInfo);
+            } else // Invalid
+            {
+                throw new Exception("Unknown post file.");
+            }
 
             //Check that we support this editor version. If not, abort out because the data struct may be altered!
             if (info.EditorVersion > Constants.CURRENT_EDITOR_VERSION)
