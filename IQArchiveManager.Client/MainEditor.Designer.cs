@@ -106,6 +106,7 @@ namespace IQArchiveManager.Client
             this.rDSDSPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.clipGrid1 = new IQArchiveManager.Client.Components.ClipGrid();
             this.transportControls = new IQArchiveManager.Client.Components.TransportControls();
+            this.btnLockCall = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.prefixSuffixPanel.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -164,6 +165,7 @@ namespace IQArchiveManager.Client
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.btnLockCall);
             this.groupBox1.Controls.Add(this.autoTgCall);
             this.groupBox1.Controls.Add(this.autoTgBtn);
             this.groupBox1.Controls.Add(this.typeBtnLiner);
@@ -510,7 +512,7 @@ namespace IQArchiveManager.Client
             | System.Windows.Forms.AnchorStyles.Right)));
             this.inputCall.Location = new System.Drawing.Point(9, 32);
             this.inputCall.Name = "inputCall";
-            this.inputCall.Size = new System.Drawing.Size(182, 20);
+            this.inputCall.Size = new System.Drawing.Size(127, 20);
             this.inputCall.TabIndex = 1;
             this.inputCall.TextChanged += new System.EventHandler(this.InputUpdated);
             // 
@@ -900,6 +902,17 @@ namespace IQArchiveManager.Client
             this.transportControls.TabIndex = 0;
             this.transportControls.TimeChanged += new IQArchiveManager.Client.Pre.PreProcessorFileStreamReader_Event(this.transportControls_TimeChanged);
             // 
+            // btnLockCall
+            // 
+            this.btnLockCall.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.btnLockCall.Location = new System.Drawing.Point(142, 32);
+            this.btnLockCall.Name = "btnLockCall";
+            this.btnLockCall.Size = new System.Drawing.Size(49, 20);
+            this.btnLockCall.TabIndex = 23;
+            this.btnLockCall.Text = "Lock";
+            this.btnLockCall.UseVisualStyleBackColor = true;
+            this.btnLockCall.Click += new System.EventHandler(this.btnLockCall_Click);
+            // 
             // MainEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1016,5 +1029,6 @@ namespace IQArchiveManager.Client
         private System.Windows.Forms.ToolStripMenuItem nextRDSItemToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem previousRDSItemToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem rawPIFramesToolStripMenuItem;
+        private System.Windows.Forms.Button btnLockCall;
     }
 }

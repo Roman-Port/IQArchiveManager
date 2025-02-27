@@ -67,6 +67,8 @@ namespace IQArchiveManager.Client
 
         private bool forceRawRtDisplay = false;
 
+        private bool lockCall; // If true, do not automatically change callsign on auto detect
+
         private void MainEditor_Load(object sender, EventArgs e)
         {
             //Bind
@@ -468,7 +470,7 @@ namespace IQArchiveManager.Client
 
             //Expand range to give us some leeway
             long start = Math.Max(0, rt.first - (15 * AUDIO_SAMPLE_RATE));
-            long end = Math.Min(transportControls.StreamAudio.Length, rt.last + (15 + AUDIO_SAMPLE_RATE));
+            long end = Math.Min(transportControls.StreamAudio.Length, rt.last + (30 + AUDIO_SAMPLE_RATE));
 
             //Select region
             transportControls.SetSelectionRegion(start, end, (end - start) / 4);
@@ -511,7 +513,8 @@ namespace IQArchiveManager.Client
             }
 
             //Apply to fields
-            inputCall.Text = call + "-FM";
+            if (!lockCall)
+                inputCall.Text = call + "-FM";
             inputArtist.Text = artist;
             inputTitle.Text = title;
 
@@ -979,6 +982,12 @@ namespace IQArchiveManager.Client
 
             //Finally, open the next file
             OpenNextFile();
+        }
+
+        private void btnLockCall_Click(object sender, EventArgs e)
+        {
+            lockCall = !lockCall;
+            btnLockCall.Text = lockCall ? "Unlock" : "Lock";
         }
     }
 }
