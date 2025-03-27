@@ -39,7 +39,10 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv.Db
                 using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read))
                 using (StreamReader sr = new StreamReader(fs))
                 {
-                    items.AddRange(CsvReader.Read(sr).Select(x => new CsvPlaybackItem(x.Values, profile)));
+                    items.AddRange(CsvReader.Read(sr, new CsvOptions
+                    {
+                        HeaderMode = HeaderMode.HeaderAbsent
+                    }).Select(x => new CsvPlaybackItem(x.Values, profile)));
                 }
 
                 //Sort list
