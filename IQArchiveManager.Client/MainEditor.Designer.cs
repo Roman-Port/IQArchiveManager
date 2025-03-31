@@ -34,6 +34,7 @@ namespace IQArchiveManager.Client
             this.rdsPsLabel = new System.Windows.Forms.Label();
             this.rdsRtLabel = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.btnLockCall = new System.Windows.Forms.Button();
             this.autoTgCall = new System.Windows.Forms.TextBox();
             this.autoTgBtn = new System.Windows.Forms.Button();
             this.typeBtnLiner = new System.Windows.Forms.RadioButton();
@@ -106,7 +107,7 @@ namespace IQArchiveManager.Client
             this.rDSDSPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.clipGrid1 = new IQArchiveManager.Client.Components.ClipGrid();
             this.transportControls = new IQArchiveManager.Client.Components.TransportControls();
-            this.btnLockCall = new System.Windows.Forms.Button();
+            this.itemsListSummaryLabel = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.prefixSuffixPanel.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -137,7 +138,7 @@ namespace IQArchiveManager.Client
             this.waterfallView1.FftRange = 100F;
             this.waterfallView1.Location = new System.Drawing.Point(631, 258);
             this.waterfallView1.Name = "waterfallView1";
-            this.waterfallView1.Size = new System.Drawing.Size(742, 222);
+            this.waterfallView1.Size = new System.Drawing.Size(742, 273);
             this.waterfallView1.TabIndex = 2;
             // 
             // rdsPsLabel
@@ -194,6 +195,17 @@ namespace IQArchiveManager.Client
             this.groupBox1.TabIndex = 12;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Clip Settings";
+            // 
+            // btnLockCall
+            // 
+            this.btnLockCall.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.btnLockCall.Location = new System.Drawing.Point(142, 32);
+            this.btnLockCall.Name = "btnLockCall";
+            this.btnLockCall.Size = new System.Drawing.Size(49, 20);
+            this.btnLockCall.TabIndex = 23;
+            this.btnLockCall.Text = "Lock";
+            this.btnLockCall.UseVisualStyleBackColor = true;
+            this.btnLockCall.Click += new System.EventHandler(this.btnLockCall_Click);
             // 
             // autoTgCall
             // 
@@ -888,7 +900,7 @@ namespace IQArchiveManager.Client
             this.clipGrid1.IsMini = true;
             this.clipGrid1.Location = new System.Drawing.Point(12, 366);
             this.clipGrid1.Name = "clipGrid1";
-            this.clipGrid1.Size = new System.Drawing.Size(613, 114);
+            this.clipGrid1.Size = new System.Drawing.Size(613, 149);
             this.clipGrid1.TabIndex = 14;
             // 
             // transportControls
@@ -896,28 +908,26 @@ namespace IQArchiveManager.Client
             this.transportControls.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.transportControls.Location = new System.Drawing.Point(12, 486);
+            this.transportControls.Location = new System.Drawing.Point(12, 537);
             this.transportControls.Name = "transportControls";
-            this.transportControls.Size = new System.Drawing.Size(1361, 291);
+            this.transportControls.Size = new System.Drawing.Size(1361, 240);
             this.transportControls.TabIndex = 0;
             this.transportControls.TimeChanged += new IQArchiveManager.Client.Pre.PreProcessorFileStreamReader_Event(this.transportControls_TimeChanged);
             // 
-            // btnLockCall
+            // itemsListSummaryLabel
             // 
-            this.btnLockCall.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.btnLockCall.Location = new System.Drawing.Point(142, 32);
-            this.btnLockCall.Name = "btnLockCall";
-            this.btnLockCall.Size = new System.Drawing.Size(49, 20);
-            this.btnLockCall.TabIndex = 23;
-            this.btnLockCall.Text = "Lock";
-            this.btnLockCall.UseVisualStyleBackColor = true;
-            this.btnLockCall.Click += new System.EventHandler(this.btnLockCall_Click);
+            this.itemsListSummaryLabel.Location = new System.Drawing.Point(9, 518);
+            this.itemsListSummaryLabel.Name = "itemsListSummaryLabel";
+            this.itemsListSummaryLabel.Size = new System.Drawing.Size(616, 16);
+            this.itemsListSummaryLabel.TabIndex = 18;
+            this.itemsListSummaryLabel.Text = "Items";
             // 
             // MainEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1385, 789);
+            this.Controls.Add(this.itemsListSummaryLabel);
             this.Controls.Add(this.recordingTimeLabel);
             this.Controls.Add(this.clipGrid1);
             this.Controls.Add(this.groupBox2);
@@ -1030,5 +1040,6 @@ namespace IQArchiveManager.Client
         private System.Windows.Forms.ToolStripMenuItem previousRDSItemToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem rawPIFramesToolStripMenuItem;
         private System.Windows.Forms.Button btnLockCall;
+        private System.Windows.Forms.Label itemsListSummaryLabel;
     }
 }

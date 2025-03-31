@@ -144,7 +144,7 @@ namespace IQArchiveManager.Client
             btnFileDelete.Enabled = editedClipsList.Items.Count == 0;
 
             //Show duplicate clips in the grid
-            clipGrid1.AddClips(db.Clips.Where(x => x.Station.ToUpper() == inputCall.Text.ToUpper() && x.Artist.ToUpper() == inputArtist.Text.ToUpper() && x.Title.ToUpper() == inputTitle.Text.ToUpper()), true);
+            RefreshClipsGrid();
 
             //Open
             inputReader = new PreProcessorFileReader(infoFile.FullName);
@@ -171,6 +171,9 @@ namespace IQArchiveManager.Client
             //Start timers
             fftTimer.Start();
             rdsTimer.Start();
+
+            //Reset time display
+            UpdateRecordingTimeLabel();
         }
 
         /// <summary>
@@ -611,13 +614,83 @@ namespace IQArchiveManager.Client
             UpdateAddBtnStatus();
 
             //Show duplicate clips in the grid
-            clipGrid1.AddClips(
-                db.Clips.Where(
-                    x => x.Station.ToUpper() == inputCall.Text.ToUpper() &&
-                    x.Artist.ToUpper() == GetEntryArtist().ToUpper() &&
-                    x.Title.ToUpper() == GetEntryTitle().ToUpper()
-                    )
-                , true);
+            RefreshClipsGrid();
+        }
+
+        public Color ClipListSummaryColorShort { get; set; }
+        public Color ClipListSummaryColorMedium { get; set; }
+        public Color ClipListSummaryColorLong { get; set; }
+
+        public const int MAX_CLIP_GRID_ITEMS = 100;
+
+        private void RefreshClipsGrid()
+        {
+            //Get query info and check if it's even worth searching.
+            string currentCall = inputCall.Text.ToUpper();
+            string currentArtist = GetEntryArtist().ToUpper();
+            string currentTitle = GetEntryTitle().ToUpper();
+            bool searchPerformed = (currentArtist.Length > 0 || currentTitle.Length > 0) && currentCall.Length > 0;
+            TrackClipInfo[] clips = new TrackClipInfo[0];
+            if (searchPerformed)
+            {
+                //Find all clips
+                clips = db.Clips.Where(
+                        x => x.Station.ToUpper() == currentCall &&
+                        x.Artist.ToUpper() == currentArtist &&
+                        x.Title.ToUpper() == currentTitle
+                    ).OrderByDescending(x => x.Time).ToArray();
+            }
+
+            //Set summary
+            if (clips.Length > 0)
+            {
+                //Find date closest to the current playhead position
+                DateTime playheadTime = CalculateOffsetTime(transportControls.StreamAudio.Position);
+                DateTime nearestEventTime = clips.Select(x => x.Time).FindNearest(playheadTime);
+                TimeSpan distance = playheadTime - nearestEventTime;
+                int distanceDays = (int)distance.Abs().TotalDays;
+                string distanceString = distanceDays.ToString() + " day" + (distanceDays == 1 ? "" : "s");
+
+                //Update text
+                itemsListSummaryLabel.Text = $"{clips.Length.ToStringPlural("clip")} found, nearest on {nearestEventTime.ToShortDateString()} ({distanceDays.ToStringPlural("day")} {(distance > TimeSpan.Zero ? "ago" : "ahead")}).";
+
+                //Determine color
+                Color textColor;
+                if (distanceDays > 1000)
+                    textColor = Color.FromArgb(245, 66, 66); //red
+                else if (distanceDays > 400)
+                    textColor = Color.FromArgb(227, 110, 7); //orange
+                else if (distanceDays > 190)
+                    textColor = Color.FromArgb(40, 89, 250); //blue
+                else
+                    textColor = Color.Black;
+
+                //Apply color
+                itemsListSummaryLabel.ForeColor = textColor;
+            } else if (searchPerformed)
+            {
+                itemsListSummaryLabel.ForeColor = Color.FromArgb(245, 66, 66);
+                itemsListSummaryLabel.Text = "No matching items found.";
+            } else
+            {
+                itemsListSummaryLabel.Text = "";
+            }
+
+            //Show in grid if within a reasonable number
+            if (clips.Length < MAX_CLIP_GRID_ITEMS)
+            {
+                //Show
+                clipGrid1.AddClips(clips, true);
+                if (!clipGrid1.Visible)
+                    clipGrid1.Visible = true;
+            } else
+            {
+                //Clear grid and hide it
+                clipGrid1.AddClips(new TrackClipInfo[0], true);
+                if (clipGrid1.Visible)
+                    clipGrid1.Visible = false;
+                itemsListSummaryLabel.Text += $" Clip count >= {MAX_CLIP_GRID_ITEMS}, list disabled for performance.";
+            }
         }
 
         private void UpdateAddBtnStatus()
@@ -727,13 +800,19 @@ namespace IQArchiveManager.Client
 
         private void transportControls_TimeChanged(PreProcessorFileStreamReader reader)
         {
-            DateTime time = CalculateOffsetTime(reader.Position);
+            UpdateRecordingTimeLabel();
+        }
+
+        private void UpdateRecordingTimeLabel()
+        {
+            DateTime time = CalculateOffsetTime(transportControls.StreamAudio.Position);
             recordingTimeLabel.Text = showDate ? time.ToShortDateString() : time.ToLongTimeString();
         }
 
         private void recordingTimeLabel_Click(object sender, EventArgs e)
         {
             showDate = !showDate;
+            UpdateRecordingTimeLabel();
         }
 
         private void rdsPatchMethod_SelectedIndexChanged(object sender, EventArgs e)
