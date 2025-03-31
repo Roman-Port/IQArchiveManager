@@ -923,6 +923,9 @@ namespace IQArchiveManager.Client
             //Shift suffix -> prefix
             inputPrefix.Text = inputSuffix.Text;
             inputSuffix.Text = "";
+
+            //Validate
+            UpdateAddBtnStatus();
         }
 
         private void previousRDSItemToolStripMenuItem_Click(object sender, EventArgs e)
@@ -933,6 +936,9 @@ namespace IQArchiveManager.Client
             //Shift prefix -> suffix
             inputSuffix.Text = inputPrefix.Text;
             inputPrefix.Text = "";
+
+            //Validate
+            UpdateAddBtnStatus();
         }
 
         private void typeBtnSong_CheckedChanged(object sender, EventArgs e)
