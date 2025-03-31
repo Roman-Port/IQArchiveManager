@@ -163,6 +163,30 @@ namespace IQArchiveManager.Client
             db.CreatedAt = oldest;
         }
 
+        /// <summary>
+        /// Estimates the size of all original (unedited) files. This may take a moment!
+        /// </summary>
+        /// <returns></returns>
+        public long CalculateOriginalFileSizeTotal()
+        {
+            //Find all UNIQUE original filesizes. This is why it's an estimate.
+            //If an original file happened to share a size with another (very very unlikely) it would only be counted once.
+            List<long> uniqueSizes = new List<long>();
+            long totalSize = 0;
+            foreach (var c in Clips)
+            {
+                //Check if a source file of this size has been counted yet
+                if (uniqueSizes.Contains(c.OriginalFileSize))
+                    continue;
+
+                //Unique, add to total and list
+                uniqueSizes.Add(c.OriginalFileSize);
+                totalSize += c.OriginalFileSize;
+            }
+
+            return totalSize;
+        }
+
         class DbRoot
         {
             [JsonProperty("clips")]

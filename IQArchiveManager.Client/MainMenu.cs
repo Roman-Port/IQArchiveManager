@@ -179,13 +179,16 @@ namespace IQArchiveManager.Client
             //Set label
             if (db.Clips.Count == foundCount)
             {
-                //Calculate estimated filesize
-                long filesize = 0;
-                foreach (var c in db.Clips)
-                    filesize += c.OriginalFileSize;
+                //Calculate estimated filesize and convert to GB
+                long filesize = db.CalculateOriginalFileSizeTotal() / 1000 / 1000 / 1000;
+
+                //Format
+                string filesizeText = filesize + " GB";
+                if (filesize > 1000)
+                    filesizeText = (filesize / 1000).ToString() + "." + ((filesize % 1000) / 100) + " TB";
 
                 //Update
-                statusLabel.Text = $"{db.Clips.Count} clips ({filesize/1000/1000/1000/1000} TB total edited) in database since {db.CreationDate.ToShortDateString()}";
+                statusLabel.Text = $"{db.Clips.Count} clips (~{filesizeText} total edited) in database since {db.CreationDate.ToShortDateString()}";
             } else
             {
                 statusLabel.Text = $"{foundCount} of {db.Clips.Count} clips found";
