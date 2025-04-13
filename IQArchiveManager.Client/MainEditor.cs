@@ -29,9 +29,10 @@ namespace IQArchiveManager.Client
 {
     public unsafe partial class MainEditor : Form, IRdsPatchContext
     {
-        public MainEditor(ClipDatabase db, RdsParserStore parser)
+        public MainEditor(ClipDatabase db, RdsParserStore parser, List<string> files)
         {
             this.db = db;
+            this.files = files;
             rds = new RdsReader(parser);
             InitializeComponent();
         }
@@ -39,6 +40,7 @@ namespace IQArchiveManager.Client
         public const int AUDIO_SAMPLE_RATE = 20000;
 
         private ClipDatabase db;
+        private List<string> files;
 
         private FileInfo wavFile;
         private FileInfo infoFile;
@@ -763,27 +765,20 @@ namespace IQArchiveManager.Client
 
         public void OpenNextFile()
         {
-            //Get list of files in working dir
-            string[] files = Directory.GetFiles(db.Enviornment.EditDir);
-
-            //Loop through and look for files
-            foreach(var f in files)
+            //Pop file from the queue
+            if (files.Count == 0)
             {
-                //Make sure it's a WAV file
-                if (!f.EndsWith(".wav"))
-                    continue;
-
-                //Look for a metadata file
-                if (File.Exists(f + ".iqpre"))
-                {
-                    OpenFile(f);
-                    return;
-                }
+                //Done
+                MessageBox.Show("All files have been edited!");
+                Close();
             }
 
-            //Done
-            MessageBox.Show("All files have been edited!");
-            Close();
+            //Pop
+            string file = files[0];
+            files.RemoveAt(0);
+
+            //Open
+            OpenFile(file);
         }
 
         private bool showDate = false;

@@ -27,7 +27,7 @@ namespace IQArchiveManager.Client
         public string DatabaseFilename => filename;
         public List<TrackClipInfo> Clips => db.Clips;
         public Dictionary<string, JObject> PersistentData => db.Persistent;
-        public IQEnviornment Enviornment => db.Enviornment;
+        public IQDirectories Enviornment => db.Directories;
         public DateTime CreationDate
         {
             get
@@ -195,8 +195,8 @@ namespace IQArchiveManager.Client
             [JsonProperty("persistent")]
             public Dictionary<string, JObject> Persistent { get; set; } = new Dictionary<string, JObject>();
 
-            [JsonProperty("enviornment")]
-            public IQEnviornment Enviornment { get; set; } = new IQEnviornment();
+            [JsonProperty("directories")]
+            public IQDirectories Directories { get; set; } = new IQDirectories();
 
             [JsonProperty("created_at")]
             public DateTime CreatedAt { get; set; } = DateTime.MinValue;

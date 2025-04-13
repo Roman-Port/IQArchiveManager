@@ -103,6 +103,18 @@
     <Compile Include="Components\ExportStatsDialog.Designer.cs">
       <DependentUpon>ExportStatsDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="Components\FolderListPicker.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Components\FolderListPicker.Designer.cs">
+      <DependentUpon>FolderListPicker.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Components\FolderListPickerItem.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Components\FolderListPickerItem.Designer.cs">
+      <DependentUpon>FolderListPickerItem.cs</DependentUpon>
+    </Compile>
     <Compile Include="Components\RebuildDatabaseDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -147,7 +159,7 @@
       <DependentUpon>EnviornmentPicker.cs</DependentUpon>
     </Compile>
     <Compile Include="GeneralUtils.cs" />
-    <Compile Include="IQEnviornment.cs" />
+    <Compile Include="IQDirectories.cs" />
     <Compile Include="MainEditor.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -213,6 +225,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Components\ExportStatsDialog.resx">
       <DependentUpon>ExportStatsDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Components\FolderListPicker.resx">
+      <DependentUpon>FolderListPicker.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Components\FolderListPickerItem.resx">
+      <DependentUpon>FolderListPickerItem.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Components\RebuildDatabaseDialog.resx">
       <DependentUpon>RebuildDatabaseDialog.cs</DependentUpon>

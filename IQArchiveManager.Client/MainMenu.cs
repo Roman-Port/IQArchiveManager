@@ -91,10 +91,6 @@ namespace IQArchiveManager.Client
             //Write the database filename to the last DB file if requested
             if (updateLastFile)
                 File.WriteAllText(LastDbFilename, db.DatabaseFilename);
-
-            //If enviornment items aren't set, show alert
-            if (!db.Enviornment.IqaDirs.IsValid)
-                MessageBox.Show("No IQA directory is set. You won't be able to extract files.\r\n\r\nSet up directories under Setup > Folders.", "Missing Settings", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         /// <summary>
@@ -118,7 +114,7 @@ namespace IQArchiveManager.Client
         /// <returns></returns>
         private bool CheckIqaPath()
         {
-            if (db.Enviornment.IqaDirs.IsValid)
+            if (db.Enviornment.IqaDirs.Count > 0)
                 return true;
             MessageBox.Show("No IQA directory is set. Add it to extract files.\r\n\r\nSet up directories under Setup > Folders.", "Missing Settings", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return false;
@@ -283,8 +279,68 @@ namespace IQArchiveManager.Client
 
         private void btnOpenEditor_Click(object sender, EventArgs e)
         {
-            new MainEditor(db, parsers).ShowDialog();
-            RefreshClips();
+            if (db.Enviornment.EditDirs.Count == 0)
+            {
+                MessageBox.Show("No edit directories are set.\r\n\r\nSet up directories under Setup > Folders.", "Missing Settings", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            ShowFolderPicker(db.Enviornment.EditDirs.ToArray(), (string dir) =>
+            {
+                //Scan for files
+                string[] files = Directory.GetFiles(dir, "*.wav");
+
+                //Loop through and look for files
+                List<string> matches = new List<string>();
+                foreach (var f in files)
+                {
+                    //Look for a metadata file
+                    if (File.Exists(f + ".iqpre"))
+                        matches.Add(f);
+                }
+
+                //Show if there are clips
+                if (matches.Count > 0)
+                {
+                    new MainEditor(db, parsers, matches).ShowDialog();
+                    RefreshClips();
+                } else
+                {
+                    MessageBox.Show($"No pending files were found in:\n\n{dir}", "Edit", MessageBoxButtons.OK);
+                }
+            });
+        }
+
+        private void ShowFolderPicker(string[] dirs, Action<string> callback)
+        {
+            //If there are more than 1 edit directory, prompt for it
+            if (dirs.Length != 1)
+            {
+                ToolStripDropDownMenu menu = new ToolStripDropDownMenu();
+                foreach (var dir in dirs)
+                {
+                    ToolStripMenuItem item = new ToolStripMenuItem
+                    {
+                        Text = dir,
+                        Tag = callback
+                    };
+                    item.Click += DirSelectorMenuItemClicked;
+                    menu.Items.Add(item);
+                }
+                menu.Show(Cursor.Position);
+            }
+            else
+            {
+                //Show now
+                callback(dirs[0]);
+            }
+        }
+
+        private void DirSelectorMenuItemClicked(object sender, EventArgs e)
+        {
+            ToolStripMenuItem item = (ToolStripMenuItem)sender;
+            Action<string> callback = (Action<string>)item.Tag;
+            callback(item.Text);
         }
 
         private void rebuildToolStripMenuItem_Click(object sender, EventArgs e)
