@@ -74,6 +74,9 @@ namespace IQArchiveManager.Common
         [JsonProperty("un")]
         public string Notes { get; set; }
 
+        [JsonProperty("ul")]
+        public string Location { get; set; } // Location that the server provides
+
         /* LATER DATA */
 
         [JsonProperty("ps")]
@@ -136,6 +139,8 @@ namespace IQArchiveManager.Common
 
         /* LEGACY NAMES */
 
+#pragma warning disable IDE0051 // Remove unused private members
+
         [JsonProperty("id")]
         private string _Legacy_id { set => Id = value; }
 
@@ -183,6 +188,8 @@ namespace IQArchiveManager.Common
 
         [JsonProperty("snr")]
         private TrackClipInfoSnr _Legacy_snr { set => Snr = value; }
+
+#pragma warning restore IDE0051 // Remove unused private members
     }
 
     public class TrackClipInfoSnr
@@ -198,6 +205,8 @@ namespace IQArchiveManager.Common
 
         /* LEGACY NAMES */
 
+#pragma warning disable IDE0051 // Remove unused private members
+
         [JsonProperty("version")]
         private int _Legacy_version { set => Version = value; }
 
@@ -206,5 +215,8 @@ namespace IQArchiveManager.Common
 
         [JsonProperty("snr")]
         private float _Legacy_snr { set => Snr = value; }
+
+#pragma warning restore IDE0051 // Remove unused private members
+
     }
 }

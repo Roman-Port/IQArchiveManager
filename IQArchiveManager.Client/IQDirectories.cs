@@ -1,5 +1,4 @@
-﻿using IQArchiveManager.Client.Db;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;

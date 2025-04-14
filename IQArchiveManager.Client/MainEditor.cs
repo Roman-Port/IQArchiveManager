@@ -1,4 +1,5 @@
 ﻿using Csv;
+using IQArchiveManager.Client.Components;
 using IQArchiveManager.Client.Pre;
 using IQArchiveManager.Client.RDS;
 using IQArchiveManager.Client.RDS.Parser;
@@ -79,6 +80,7 @@ namespace IQArchiveManager.Client
             //Prepare output audio
             audioPlayer = new AudioPlaybackProvider();
             audioOutput = new WaveOut();
+            audioOutput.NumberOfBuffers = 4;
             audioOutput.Init(audioPlayer);
             audioOutput.Play();
 
@@ -95,9 +97,33 @@ namespace IQArchiveManager.Client
             rdsTimer.Tick += RdsTimer_Tick;
             rds.OnPatcherUpdated += Rds_OnPatcherUpdated;
 
+            //Add all files to file menu
+            foreach (var f in files.OrderBy(x => x))
+            {
+                //Get shorter filename
+                int lastSlash = f.LastIndexOf(Path.DirectorySeparatorChar);
+                string filename = f;
+                if (lastSlash != -1)
+                    filename = filename.Substring(lastSlash + 1);
+
+                //Add
+                ToolStripMenuItem item = new ToolStripMenuItem
+                {
+                    Text = filename,
+                    Tag = f
+                };
+                item.Click += FileItemClicked;
+                filesToolStripMenuItem.DropDownItems.Add(item);
+            }
+
             //Set up project
             OpenNextFile();
             UpdateEntryLayout();
+        }
+
+        private void FileItemClicked(object sender, EventArgs e)
+        {
+            ChangeFile((ToolStripMenuItem)sender);
         }
 
         private void MainEditor_FormClosing(object sender, FormClosingEventArgs e)
@@ -763,22 +789,49 @@ namespace IQArchiveManager.Client
             throw new Exception("Invalid state.");
         }
 
+        /// <summary>
+        /// Removes the active file from the list and goes to the next one.
+        /// </summary>
         public void OpenNextFile()
         {
-            //Pop file from the queue
-            if (files.Count == 0)
+            //Pop current file from queue
+            if (lastFileItem != null)
+                filesToolStripMenuItem.DropDownItems.Remove(lastFileItem);
+
+            //Check if empty
+            if (filesToolStripMenuItem.DropDownItems.Count == 0)
             {
                 //Done
                 MessageBox.Show("All files have been edited!");
                 Close();
+                return;
             }
 
-            //Pop
-            string file = files[0];
-            files.RemoveAt(0);
+            //Open
+            ChangeFile(filesToolStripMenuItem.DropDownItems[0] as ToolStripMenuItem);
+        }
+
+        private ToolStripMenuItem lastFileItem; // The item in the menu for the last file opened
+
+        /// <summary>
+        /// Changes files without removing them from the list.
+        /// </summary>
+        /// <param name="item"></param>
+        public void ChangeFile(ToolStripMenuItem item)
+        {
+            //Get filename
+            string filename = (string)item.Tag;
+
+            //Uncheck old
+            if (lastFileItem != null)
+                lastFileItem.Checked = false;
+
+            //Set as checked
+            item.Checked = true;
+            lastFileItem = item;
 
             //Open
-            OpenFile(file);
+            OpenFile(filename);
         }
 
         private bool showDate = false;
@@ -1068,6 +1121,11 @@ namespace IQArchiveManager.Client
         {
             lockCall = !lockCall;
             btnLockCall.Text = lockCall ? "Unlock" : "Lock";
+        }
+
+        private void tipsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            new EditorTipsForm().ShowDialog();
         }
     }
 }

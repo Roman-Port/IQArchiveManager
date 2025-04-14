@@ -97,6 +97,12 @@
     <Compile Include="Components\CorrectNoDelimiterForm.Designer.cs">
       <DependentUpon>CorrectNoDelimiterForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Components\EditorTipsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Components\EditorTipsForm.Designer.cs">
+      <DependentUpon>EditorTipsForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Components\ExportStatsDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -151,7 +157,6 @@
     <Compile Include="Components\WorkerDialog.Designer.cs">
       <DependentUpon>WorkerDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="Db\EnviornmentPath.cs" />
     <Compile Include="EnviornmentPicker.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -222,6 +227,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Components\CorrectNoDelimiterForm.resx">
       <DependentUpon>CorrectNoDelimiterForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Components\EditorTipsForm.resx">
+      <DependentUpon>EditorTipsForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Components\ExportStatsDialog.resx">
       <DependentUpon>ExportStatsDialog.cs</DependentUpon>

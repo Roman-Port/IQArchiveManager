@@ -345,12 +345,10 @@ namespace IQArchiveManager.Client
 
         private void rebuildToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //Check that the directory is set
-            if (!CheckIqaPath())
-                return;
-
             //Show
+            Hide();
             new RebuildDatabaseDialog(db).ShowDialog();
+            Show();
 
             //Refresh
             RefreshClips();

@@ -6,6 +6,6 @@ namespace IQArchiveManager.Common
 {
     public static class Constants
     {
-        public const int CURRENT_EDITOR_VERSION = 2;
+        public const int CURRENT_EDITOR_VERSION = 3;
     }
 }

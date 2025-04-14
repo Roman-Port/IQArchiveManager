@@ -71,6 +71,8 @@ namespace IQArchiveManager.Client
             this.btnFileSave = new System.Windows.Forms.Button();
             this.recordingTimeLabel = new System.Windows.Forms.Label();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.filesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.navigateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.transportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.nudgeStartForward20sToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -108,6 +110,7 @@ namespace IQArchiveManager.Client
             this.clipGrid1 = new IQArchiveManager.Client.Components.ClipGrid();
             this.transportControls = new IQArchiveManager.Client.Components.TransportControls();
             this.itemsListSummaryLabel = new System.Windows.Forms.Label();
+            this.tipsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1.SuspendLayout();
             this.prefixSuffixPanel.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -601,13 +604,29 @@ namespace IQArchiveManager.Client
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.navigateToolStripMenuItem,
-            this.debugToolStripMenuItem});
+            this.filesToolStripMenuItem,
+            this.toolsToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(1385, 24);
             this.menuStrip1.TabIndex = 17;
             this.menuStrip1.Text = "menuStrip1";
+            // 
+            // filesToolStripMenuItem
+            // 
+            this.filesToolStripMenuItem.Name = "filesToolStripMenuItem";
+            this.filesToolStripMenuItem.Size = new System.Drawing.Size(42, 20);
+            this.filesToolStripMenuItem.Text = "Files";
+            // 
+            // toolsToolStripMenuItem
+            // 
+            this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.navigateToolStripMenuItem,
+            this.debugToolStripMenuItem,
+            this.tipsToolStripMenuItem});
+            this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
+            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
+            this.toolsToolStripMenuItem.Text = "Tools";
             // 
             // navigateToolStripMenuItem
             // 
@@ -616,8 +635,9 @@ namespace IQArchiveManager.Client
             this.jumpToolStripMenuItem,
             this.moveToolStripMenuItem});
             this.navigateToolStripMenuItem.Name = "navigateToolStripMenuItem";
-            this.navigateToolStripMenuItem.Size = new System.Drawing.Size(66, 20);
+            this.navigateToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.navigateToolStripMenuItem.Text = "Navigate";
+            this.navigateToolStripMenuItem.Visible = false;
             // 
             // transportToolStripMenuItem
             // 
@@ -847,7 +867,7 @@ namespace IQArchiveManager.Client
             this.exportRDSToolStripMenuItem,
             this.rDSDSPToolStripMenuItem});
             this.debugToolStripMenuItem.Name = "debugToolStripMenuItem";
-            this.debugToolStripMenuItem.Size = new System.Drawing.Size(54, 20);
+            this.debugToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.debugToolStripMenuItem.Text = "Debug";
             // 
             // exportRDSToolStripMenuItem
@@ -858,7 +878,7 @@ namespace IQArchiveManager.Client
             this.parsedRTFramesToolStripMenuItem,
             this.rawPIFramesToolStripMenuItem});
             this.exportRDSToolStripMenuItem.Name = "exportRDSToolStripMenuItem";
-            this.exportRDSToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+            this.exportRDSToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.exportRDSToolStripMenuItem.Text = "Export RDS";
             // 
             // rawPSFramesToolStripMenuItem
@@ -892,7 +912,7 @@ namespace IQArchiveManager.Client
             // rDSDSPToolStripMenuItem
             // 
             this.rDSDSPToolStripMenuItem.Name = "rDSDSPToolStripMenuItem";
-            this.rDSDSPToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+            this.rDSDSPToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.rDSDSPToolStripMenuItem.Text = "RDS DSP";
             // 
             // clipGrid1
@@ -921,6 +941,13 @@ namespace IQArchiveManager.Client
             this.itemsListSummaryLabel.Size = new System.Drawing.Size(616, 16);
             this.itemsListSummaryLabel.TabIndex = 18;
             this.itemsListSummaryLabel.Text = "Items";
+            // 
+            // tipsToolStripMenuItem
+            // 
+            this.tipsToolStripMenuItem.Name = "tipsToolStripMenuItem";
+            this.tipsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.tipsToolStripMenuItem.Text = "Tips...";
+            this.tipsToolStripMenuItem.Click += new System.EventHandler(this.tipsToolStripMenuItem_Click);
             // 
             // MainEditor
             // 
@@ -1041,5 +1068,8 @@ namespace IQArchiveManager.Client
         private System.Windows.Forms.ToolStripMenuItem rawPIFramesToolStripMenuItem;
         private System.Windows.Forms.Button btnLockCall;
         private System.Windows.Forms.Label itemsListSummaryLabel;
+        private System.Windows.Forms.ToolStripMenuItem filesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem tipsToolStripMenuItem;
     }
 }
