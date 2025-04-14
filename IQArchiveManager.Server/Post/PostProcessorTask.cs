@@ -10,9 +10,9 @@ using System.Text;
 
 namespace IQArchiveManager.Server.Post
 {
-    public class PostProcessorTask : IArchiveTask
+    public class PostProcessorTask : ArchiveTask
     {
-        public PostProcessorTask(string wavFilePath, string outputDir, string tempDir)
+        public PostProcessorTask(string wavFilePath, string outputDir, string tempDir) : base("POST-PROCESSING", wavFilePath)
         {
             this.wavFilePath = wavFilePath;
             this.outputDir = outputDir;
@@ -64,11 +64,8 @@ namespace IQArchiveManager.Server.Post
             return info;
         }
 
-        public void Process(ref string status)
+        public override void Process()
         {
-            //Update status
-            status = $"POST-PROCESSING - Preparing... - {wavFilePath}";
-
             //Load the info
             PostEditFile editorInfo = ReadInfo();
             TrackEditInfo[] edits = editorInfo.Edits.ToArray();
@@ -101,6 +98,7 @@ namespace IQArchiveManager.Server.Post
             long totalSamplesComputed = 0;
             for (int i = 0; i < edits.Length; i++)
                 totalSamples += (editSamplesEnd[i] - editSamplesStart[i]) * bytesPerSample;
+            ProgressMax = totalSamples;
 
             //Begin encoding each file
             for (int i = 0; i < edits.Length; i++)
@@ -141,7 +139,8 @@ namespace IQArchiveManager.Server.Post
                         do
                         {
                             //Update status
-                            status = $"POST-PROCESSING - Clip {i + 1} of {edits.Length} [{edits[i].Data.Id}] - {(((double)totalSamplesComputed / totalSamples) * 100).ToString("F")}% total - {wavFilePath}";
+                            StatusText = $"Clip {i + 1} of {edits.Length} [{edits[i].Data.Id}]";
+                            ProgressValue = totalSamplesComputed;
                             
                             //Calculate how much is readable and then read
                             read = wav.Read(buffer, 0, (int)Math.Min(buffer.Length, endByte - wav.Position));

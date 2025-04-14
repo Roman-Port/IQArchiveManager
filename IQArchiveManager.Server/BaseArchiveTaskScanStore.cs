@@ -16,20 +16,10 @@ namespace IQArchiveManager.Server
         private string rootDir;
         private List<string> queuedItems = new List<string>();
 
-        public void Refresh(ConcurrentQueue<IArchiveTask> queue)
-        {
-            RefreshDirectory(queue, rootDir);
-        }
-
-        private void RefreshDirectory(ConcurrentQueue<IArchiveTask> queue, string directory)
+        public void Refresh(Queue<ArchiveTask> queue)
         {
             //Query
-            string[] files = Directory.GetFiles(directory);
-            string[] dirs = Directory.GetDirectories(directory);
-
-            //Loop dirs
-            foreach (var d in dirs)
-                RefreshDirectory(queue, d);
+            string[] files = Directory.GetFiles(rootDir);
 
             //Loop files
             foreach (var f in files)
@@ -37,9 +27,9 @@ namespace IQArchiveManager.Server
                 //Make sure it doesn't already exist
                 if (queuedItems.Contains(f))
                     continue;
-                
+
                 //Attempt
-                IArchiveTask task = ProcessFile(f);
+                ArchiveTask task = ProcessFile(f);
 
                 //Add if we can
                 if (task != null)
@@ -50,6 +40,6 @@ namespace IQArchiveManager.Server
             }
         }
 
-        protected abstract IArchiveTask ProcessFile(string path);
+        protected abstract ArchiveTask ProcessFile(string path);
     }
 }

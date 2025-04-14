@@ -5,7 +5,7 @@ using System.Text;
 
 namespace IQArchiveManager.Server.Pre
 {
-    public class PreProcessorFileStreamWriter
+    public class PreProcessorFileStreamWriter : IDisposable
     {
         public PreProcessorFileStreamWriter(FileStream stream, string tag)
         {
@@ -23,6 +23,8 @@ namespace IQArchiveManager.Server.Pre
 
         private byte[] segmentBuffer = new byte[2048];
         private int segmentBufferUsage = 0;
+
+        private bool disposed = false;
 
         private const int FILE_HEADER_SIZE = 16 + 8 + 8;
 
@@ -101,6 +103,14 @@ namespace IQArchiveManager.Server.Pre
 
             //Go to end of file
             stream.Position = stream.Length;
+
+            //Set flag
+            disposed = true;
+        }
+
+        public void Dispose()
+        {
+            End();
         }
     }
 }

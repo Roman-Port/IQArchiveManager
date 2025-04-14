@@ -8,11 +8,14 @@ namespace IQArchiveManager.Server.Pre
 {
     public class PreProcessorTaskStore : BaseArchiveTaskScanStore
     {
-        public PreProcessorTaskStore(string rootDir) : base(rootDir + Path.DirectorySeparatorChar + "input")
+        public PreProcessorTaskStore(string rootDir, string location) : base(rootDir)
         {
+            this.location = location;
         }
 
-        protected override IArchiveTask ProcessFile(string f)
+        private readonly string location; // May be null
+
+        protected override ArchiveTask ProcessFile(string f)
         {
             //Validate
             if (!f.EndsWith(".wav"))
@@ -23,7 +26,7 @@ namespace IQArchiveManager.Server.Pre
                 return null;
 
             //Queue
-            return new PreProcessorTask(f);
+            return new PreProcessorTask(f, location);
         }
     }
 }

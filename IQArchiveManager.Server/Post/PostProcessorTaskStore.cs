@@ -8,7 +8,7 @@ namespace IQArchiveManager.Server.Post
 {
     public class PostProcessorTaskStore : BaseArchiveTaskScanStore
     {
-        public PostProcessorTaskStore(string rootDir) : base(rootDir + Path.DirectorySeparatorChar + "input")
+        public PostProcessorTaskStore(string rootDir) : base(rootDir)
         {
             outputDir = rootDir + Path.DirectorySeparatorChar + "output";
             tempDir = rootDir + Path.DirectorySeparatorChar + "temp";
@@ -17,7 +17,7 @@ namespace IQArchiveManager.Server.Post
         private string outputDir;
         private string tempDir;
 
-        protected override IArchiveTask ProcessFile(string f)
+        protected override ArchiveTask ProcessFile(string f)
         {
             //Validate
             if (!f.EndsWith(".wav"))

@@ -10,30 +10,33 @@ namespace IQArchiveManager.Server
     class Program
     {
         private static List<IArchiveTaskStore> taskGenerators = new List<IArchiveTaskStore>();
-        private static ConcurrentQueue<IArchiveTask> taskQueue = new ConcurrentQueue<IArchiveTask>();
-        private static Thread[] workers = new Thread[THREAD_COUNT];
-        private static string[] workerStatus = new string[THREAD_COUNT];
+        private static ArchiveWorkerThread[] workers = new ArchiveWorkerThread[6];
         private static volatile bool stop = false;
-        private static volatile int finished = 0;
         private static volatile int errors = 0;
-
-        private const int THREAD_COUNT = 6;
 
         static void Main(string[] args)
         {
             //Init library
             InitNative();
 
+            //Get the optional location argument. This is just a user-defined string that will make it into output files to identify the source
+            string location = null;
+            if (args.Length >= 1)
+                location = args[0];
+
+            //Get current directory
+            string dir = Directory.GetCurrentDirectory().TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+
             //Create store
-            taskGenerators.Add(new Post.PostProcessorTaskStore(args[0]));
-            taskGenerators.Add(new Pre.PreProcessorTaskStore(args[0]));
+            taskGenerators.Add(new Post.PostProcessorTaskStore(dir));
+            taskGenerators.Add(new Pre.PreProcessorTaskStore(dir, location));
 
             //Create worker threads
             for (int i = 0; i < workers.Length; i++)
             {
-                workers[i] = new Thread(WorkerThread);
-                workers[i].IsBackground = true;
-                workers[i].Start(i);
+                workers[i] = new ArchiveWorkerThread();
+                workers[i].OnError += OnWorkerError;
+                workers[i].Start();
             }
 
             //Start end catching thread
@@ -43,14 +46,32 @@ namespace IQArchiveManager.Server
 
             //Occasionally refresh tasks
             int looped = int.MaxValue;
-            while (finished < THREAD_COUNT)
+            Queue<ArchiveTask> pending = new Queue<ArchiveTask>();
+            while (true)
             {
+                //Check if all have quit
+                int running = 0;
+                foreach (var w in workers)
+                {
+                    if (!w.Finished)
+                        running++;
+                }
+                if (running == 0)
+                    break;
+
                 //Check if we need to refresh
                 if (looped++ >= 20)
                 {
-                    //Refresh all
+                    //Refresh all sources to get new pending items
                     foreach (var g in taskGenerators)
-                        g.Refresh(taskQueue);
+                        g.Refresh(pending);
+
+                    //Dispatch to free workers
+                    foreach (var w in workers)
+                    {
+                        if (!w.Busy && pending.TryDequeue(out ArchiveTask task))
+                            w.PushTask(task);
+                    }
 
                     //Reset
                     looped = 0;
@@ -60,11 +81,11 @@ namespace IQArchiveManager.Server
                 if (stop)
                     PrintToLine(0, $"Exiting once items are done...");
                 else
-                    PrintToLine(0, $"{taskQueue.Count} items in queue...(press ENTER to stop adding more tasks)");
+                    PrintToLine(0, $"{pending.Count} items in queue...(press ENTER to stop adding more tasks)");
 
                 //Write tasks
                 for (int i = 0; i < workers.Length; i++)
-                    PrintToLine(i + 1, $"[#{i + 1}] => {workerStatus[i]}");
+                    PrintToLine(i + 1, $"[#{i + 1}] => {workers[i].StatusText}");
 
                 //Write errors
                 PrintToLine(workers.Length + 1, $"{errors} errors reported.");
@@ -72,6 +93,11 @@ namespace IQArchiveManager.Server
                 //Wait
                 Thread.Sleep(100);
             }
+        }
+
+        private static void OnWorkerError(ArchiveWorkerThread thread, ArchiveTask task, Exception exception)
+        {
+            errors++;
         }
 
         static unsafe void InitNative()
@@ -95,37 +121,8 @@ namespace IQArchiveManager.Server
         {
             Console.ReadLine();
             stop = true;
-        }
-
-        static void WorkerThread(object index)
-        {
-            IArchiveTask task;
-            while (!stop)
-            {
-                //Set status
-                workerStatus[(int)index] = "Idle";
-
-                //Attempt to get a task
-                while (!taskQueue.TryDequeue(out task) && !stop)
-                    Thread.Sleep(1000);
-                if (stop)
-                    break;
-
-                //Process
-                try
-                {
-                    task.Process(ref workerStatus[(int)index]);
-                } catch (Exception ex)
-                {
-                    //Update counter
-                    errors++;
-
-                    //Write error info to disk
-                    File.WriteAllText("error-" + DateTime.Now.Ticks + ".txt", ex.Message + ex.StackTrace);
-                }
-            }
-            workerStatus[(int)index] = "DONE";
-            finished++;
+            foreach (var w in workers)
+                w.RequestStop();
         }
     }
 }

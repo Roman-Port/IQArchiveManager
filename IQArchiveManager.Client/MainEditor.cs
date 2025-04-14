@@ -72,6 +72,8 @@ namespace IQArchiveManager.Client
 
         private bool lockCall; // If true, do not automatically change callsign on auto detect
 
+        private string fileUserLocation; // The user-specified string the server includes to identify itself. May be null.
+
         private void MainEditor_Load(object sender, EventArgs e)
         {
             //Bind
@@ -152,7 +154,6 @@ namespace IQArchiveManager.Client
             FileInfo postFinalFile = new FileInfo(wavPath + ".iqedit");
 
             //Set UI
-            Text = $"Editing {wavFile.Name}...";
             editedClipsList.Items.Clear();
             btnAddClip.Enabled = false;
             inputFlagHd.Checked = true;
@@ -178,6 +179,21 @@ namespace IQArchiveManager.Client
             inputReader = new PreProcessorFileReader(infoFile.FullName);
             inputReader.Open();
 
+            //Attempt to read the file location
+            if (inputReader.TryGetStreamByTag("LOCATION", out PreProcessorFileStreamReader stream))
+            {
+                //Read data
+                byte[] locBuffer = new byte[1024];
+                int locLen = stream.Read(locBuffer, 0, locBuffer.Length);
+
+                //Convert to location
+                fileUserLocation = Encoding.UTF8.GetString(locBuffer, 0, locLen);
+            } else
+            {
+                //Default
+                fileUserLocation = null;
+            }
+
             //Start audio
             audioPlayer.Stream = inputReader.GetStreamByTag("AUDIO");
 
@@ -202,6 +218,9 @@ namespace IQArchiveManager.Client
 
             //Reset time display
             UpdateRecordingTimeLabel();
+
+            //Set title
+            Text = $"Editing {wavFile.Name}" + (fileUserLocation == null ? "" : $" ({fileUserLocation})") + "...";
         }
 
         /// <summary>
@@ -455,6 +474,7 @@ namespace IQArchiveManager.Client
                 FlagHd = inputFlagHd.Checked,
                 FlagOk = inputFlagOk.Checked,
                 FlagRds = inputFlagRds.Checked,
+                Location = fileUserLocation,
                 Sha256 = null,
                 Time = time,
                 Id = db.GetNewId(inputCall.Text, time),

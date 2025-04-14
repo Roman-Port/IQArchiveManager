@@ -19,9 +19,10 @@ using System.Text;
 
 namespace IQArchiveManager.Server.Pre
 {
-    public unsafe class PreProcessorTask : IArchiveTask
+    public unsafe class PreProcessorTask : ArchiveTask
     {
-        private string wavFilePath;
+        private readonly string wavFilePath;
+        private readonly string location; // User-defined text that's saved to any files output from this. May be null
 
         private const int BUFFER_SIZE = 32768;
         private const int DEMOD_BW = 230000;
@@ -31,12 +32,13 @@ namespace IQArchiveManager.Server.Pre
         private const int FFTS_RATE = 25;
         private const int RDS_FRAME_SCALE = 10;
 
-        public PreProcessorTask(string wavFilePath)
+        public PreProcessorTask(string wavFilePath, string location) : base("PRE-PROCESSING", wavFilePath)
         {
             this.wavFilePath = wavFilePath;
+            this.location = location;
         }
 
-        public void Process(ref string status)
+        public override void Process()
         {
             //Open output file
             FileStream outputFile = new FileStream(wavFilePath + "._iqpre", FileMode.Create);
@@ -48,9 +50,18 @@ namespace IQArchiveManager.Server.Pre
             PreProcessorFileStreamWriter outputFftWriter = outputWriter.CreateStream("SPECTRUM_MAIN");
             PreProcessorFileStreamWriter outputRdsWriter = outputWriter.CreateStream("RDS2");
 
+            //If we have a location, write it to the file
+            if (location != null)
+            {
+                PreProcessorFileStreamWriter outputLocationWriter = outputWriter.CreateStream("LOCATION");
+                byte[] locationUtf8 = Encoding.UTF8.GetBytes(location);
+                outputLocationWriter.Write(locationUtf8, 0, locationUtf8.Length);
+            }
+
             //Open WAV file
             FileStream inputFile = new FileStream(wavFilePath, FileMode.Open, FileAccess.Read);
             WavFileReader inputReader = new WavFileReader(inputFile);
+            ProgressMax = inputReader.LengthSamples;
 
             //Create sample buffer
             UnsafeBuffer iqBuffer = UnsafeBuffer.Create(BUFFER_SIZE, out Complex* iqBufferPtr);
@@ -94,7 +105,7 @@ namespace IQArchiveManager.Server.Pre
                 while (true)
                 {
                     //Set status
-                    status = $"PRE-PROCESSING - {((int)((inputReader.PositionSamples / (double)inputReader.LengthSamples) * 100)).ToString().PadLeft(2, '0')}% - {wavFilePath}";
+                    ProgressValue = inputReader.PositionSamples;
 
                     //Read
                     int read = inputReader.Read(iqBufferPtr, Math.Min(inputReader.SampleRate - samplesSinceLastSegment, BUFFER_SIZE));
