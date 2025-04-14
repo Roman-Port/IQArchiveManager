@@ -11,11 +11,15 @@ namespace IQArchiveManager.Server.Post
         public PostProcessorTaskStore(string rootDir) : base(rootDir)
         {
             outputDir = rootDir + Path.DirectorySeparatorChar + "output";
-            tempDir = rootDir + Path.DirectorySeparatorChar + "temp";
+            if (!Directory.Exists(outputDir))
+                Directory.CreateDirectory(outputDir);
+            finishedDir = rootDir + Path.DirectorySeparatorChar + "edited";
+            if (!Directory.Exists(finishedDir))
+                Directory.CreateDirectory(finishedDir);
         }
 
         private string outputDir;
-        private string tempDir;
+        private string finishedDir;
 
         protected override ArchiveTask ProcessFile(string f)
         {
@@ -28,7 +32,7 @@ namespace IQArchiveManager.Server.Post
                 return null;
 
             //Queue
-            return new PostProcessorTask(f, outputDir, tempDir);
+            return new PostProcessorTask(f, outputDir, finishedDir);
         }
     }
 }

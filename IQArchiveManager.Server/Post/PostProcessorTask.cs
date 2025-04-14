@@ -12,11 +12,11 @@ namespace IQArchiveManager.Server.Post
 {
     public class PostProcessorTask : ArchiveTask
     {
-        public PostProcessorTask(string wavFilePath, string outputDir, string tempDir) : base("POST-PROCESSING", wavFilePath)
+        public PostProcessorTask(string wavFilePath, string outputDir, string finishedDir) : base("POST-PROCESSING", wavFilePath)
         {
             this.wavFilePath = wavFilePath;
             this.outputDir = outputDir;
-            this.tempDir = tempDir;
+            this.finishedDir = finishedDir;
             preFilePath = wavFilePath + ".iqpre";
             postFilePath = wavFilePath + ".iqedit";
         }
@@ -26,7 +26,7 @@ namespace IQArchiveManager.Server.Post
         private string postFilePath;
 
         private string outputDir;
-        private string tempDir;
+        private string finishedDir;
 
         private PostEditFile ReadInfo()
         {
@@ -166,13 +166,32 @@ namespace IQArchiveManager.Server.Post
                     File.Delete(preFilePath);
             } else
             {
-                // BUG -- If this is in a directory with the name "input" for some reason this will not put it in the right place!!
-                // Valve pls fix (it's 1:30 AM!)
-                File.Move(wavFilePath, wavFilePath.Replace("input", "temp"));
-                File.Move(postFilePath, postFilePath.Replace("input", "temp"));
+                //Move
+                MoveToFinal(wavFilePath, finishedDir);
+                MoveToFinal(postFilePath, finishedDir);
                 if (File.Exists(preFilePath))
-                    File.Move(preFilePath, preFilePath.Replace("input", "temp"));
+                    MoveToFinal(preFilePath, finishedDir);
             }
+        }
+
+        private static void MoveToFinal(string inputFile, string outputDir)
+        {
+            //Get the standalone filename
+            string name = new FileInfo(inputFile).Name;
+
+            //Find unique name in the output
+            outputDir = outputDir.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            string outputFile;
+            int index = 0;
+            do
+            {
+                outputFile = outputDir + name;
+                for (int i = 0; i < index; i++)
+                    outputFile += "_";
+            } while (File.Exists(outputFile));
+
+            //Perform move
+            File.Move(inputFile, outputFile);
         }
     }
 }
