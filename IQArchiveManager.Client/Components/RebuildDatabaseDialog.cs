@@ -25,7 +25,7 @@ namespace IQArchiveManager.Client.Components
 
         private void RebuildDatabaseDialog_Load(object sender, EventArgs e)
         {
-            foreach (var d in db.Enviornment.IqaDirs)
+            foreach (var d in db.Directories.IqaDirs)
                 scanDirList.Items.Add(d);
         }
 

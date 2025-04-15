@@ -114,7 +114,7 @@ namespace IQArchiveManager.Client
         /// <returns></returns>
         private bool CheckIqaPath()
         {
-            if (db.Enviornment.IqaDirs.Count > 0)
+            if (db.Directories.IqaDirs.Count > 0)
                 return true;
             MessageBox.Show("No IQA directory is set. Add it to extract files.\r\n\r\nSet up directories under Setup > Folders.", "Missing Settings", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return false;
@@ -228,7 +228,7 @@ namespace IQArchiveManager.Client
 
             //Locate IQ file
             string filename;
-            if (!db.Enviornment.GetIqFileById(clip.Id, out filename))
+            if (!db.Directories.GetIqFileById(clip.Id, out filename))
             {
                 MessageBox.Show($"Unable to locate the IQ file with ID {clip.Id}. Check the file paths, or rebuild the database.", "Cannot Locate File", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
@@ -279,13 +279,13 @@ namespace IQArchiveManager.Client
 
         private void btnOpenEditor_Click(object sender, EventArgs e)
         {
-            if (db.Enviornment.EditDirs.Count == 0)
+            if (db.Directories.EditDirs.Count == 0)
             {
                 MessageBox.Show("No edit directories are set.\r\n\r\nSet up directories under Setup > Folders.", "Missing Settings", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            ShowFolderPicker(db.Enviornment.EditDirs.ToArray(), (string dir) =>
+            ShowFolderPicker(db.Directories.EditDirs.ToArray(), (string dir) =>
             {
                 //Scan for files
                 string[] files = Directory.GetFiles(dir, "*.wav");
@@ -432,7 +432,7 @@ namespace IQArchiveManager.Client
 
         private void foldersToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            new EnviornmentPicker(db.Enviornment).ShowDialog();
+            new EnviornmentPicker(db.Directories).ShowDialog();
             db.Save();
         }
     }

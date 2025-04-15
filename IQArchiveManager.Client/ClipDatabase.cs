@@ -27,7 +27,7 @@ namespace IQArchiveManager.Client
         public string DatabaseFilename => filename;
         public List<TrackClipInfo> Clips => db.Clips;
         public Dictionary<string, JObject> PersistentData => db.Persistent;
-        public IQDirectories Enviornment => db.Directories;
+        public IQDirectories Directories => db.Directories;
         public DateTime CreationDate
         {
             get
@@ -57,7 +57,13 @@ namespace IQArchiveManager.Client
             } else if (json.StartsWith("{"))
             {
                 //Load as normal
-                return JsonConvert.DeserializeObject<DbRoot>(json);
+                DbRoot data = JsonConvert.DeserializeObject<DbRoot>(json);
+
+                //Refuse to load if newer
+                if (data.Version > Constants.CURRENT_EDITOR_VERSION)
+                    throw new Exception($"Refusing to load; Current struct version {Constants.CURRENT_EDITOR_VERSION} is older than database {data.Version}!");
+
+                return data;
             } else
             {
                 throw new Exception("Invalid JSON.");
@@ -140,6 +146,9 @@ namespace IQArchiveManager.Client
             if (File.Exists(filename))
                 File.Move(filename, backupFilename);
 
+            //Upgrade version
+            db.Version = Constants.CURRENT_EDITOR_VERSION;
+
             //Write
             File.WriteAllText(filename, JsonConvert.SerializeObject(db));
         }
@@ -200,6 +209,9 @@ namespace IQArchiveManager.Client
 
             [JsonProperty("created_at")]
             public DateTime CreatedAt { get; set; } = DateTime.MinValue;
+
+            [JsonProperty("version")]
+            public int Version { get; set; } = -1; // Version of structs
         }
     }
 }
