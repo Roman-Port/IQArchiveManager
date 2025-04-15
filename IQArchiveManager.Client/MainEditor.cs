@@ -856,8 +856,6 @@ namespace IQArchiveManager.Client
             OpenFile(filename);
         }
 
-        private bool showDate = false;
-
         /// <summary>
         /// Calculates the estimated time was when a byte in the file was captured
         /// </summary>
@@ -876,13 +874,8 @@ namespace IQArchiveManager.Client
         private void UpdateRecordingTimeLabel()
         {
             DateTime time = CalculateOffsetTime(transportControls.StreamAudio.Position);
-            recordingTimeLabel.Text = showDate ? time.ToShortDateString() : time.ToLongTimeString();
-        }
-
-        private void recordingTimeLabel_Click(object sender, EventArgs e)
-        {
-            showDate = !showDate;
-            UpdateRecordingTimeLabel();
+            recordingTimeLabel.Text = time.ToLongTimeString();
+            recordingDateLabel.Text = time.ToString("ddd M/d/yy");
         }
 
         private void rdsPatchMethod_SelectedIndexChanged(object sender, EventArgs e)

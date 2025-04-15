@@ -107,10 +107,11 @@ namespace IQArchiveManager.Client
             this.parsedRTFramesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.rawPIFramesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.rDSDSPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.tipsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.itemsListSummaryLabel = new System.Windows.Forms.Label();
+            this.recordingDateLabel = new System.Windows.Forms.Label();
             this.clipGrid1 = new IQArchiveManager.Client.Components.ClipGrid();
             this.transportControls = new IQArchiveManager.Client.Components.TransportControls();
-            this.itemsListSummaryLabel = new System.Windows.Forms.Label();
-            this.tipsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1.SuspendLayout();
             this.prefixSuffixPanel.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -163,7 +164,7 @@ namespace IQArchiveManager.Client
             this.rdsRtLabel.Location = new System.Drawing.Point(710, 27);
             this.rdsRtLabel.Name = "rdsRtLabel";
             this.rdsRtLabel.Padding = new System.Windows.Forms.Padding(5);
-            this.rdsRtLabel.Size = new System.Drawing.Size(560, 25);
+            this.rdsRtLabel.Size = new System.Drawing.Size(457, 25);
             this.rdsRtLabel.TabIndex = 4;
             this.rdsRtLabel.Click += new System.EventHandler(this.rdsRtLabel_Click);
             // 
@@ -599,7 +600,6 @@ namespace IQArchiveManager.Client
             this.recordingTimeLabel.Size = new System.Drawing.Size(97, 25);
             this.recordingTimeLabel.TabIndex = 16;
             this.recordingTimeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.recordingTimeLabel.Click += new System.EventHandler(this.recordingTimeLabel_Click);
             // 
             // menuStrip1
             // 
@@ -635,7 +635,7 @@ namespace IQArchiveManager.Client
             this.jumpToolStripMenuItem,
             this.moveToolStripMenuItem});
             this.navigateToolStripMenuItem.Name = "navigateToolStripMenuItem";
-            this.navigateToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.navigateToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
             this.navigateToolStripMenuItem.Text = "Navigate";
             this.navigateToolStripMenuItem.Visible = false;
             // 
@@ -867,7 +867,7 @@ namespace IQArchiveManager.Client
             this.exportRDSToolStripMenuItem,
             this.rDSDSPToolStripMenuItem});
             this.debugToolStripMenuItem.Name = "debugToolStripMenuItem";
-            this.debugToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.debugToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
             this.debugToolStripMenuItem.Text = "Debug";
             // 
             // exportRDSToolStripMenuItem
@@ -878,7 +878,7 @@ namespace IQArchiveManager.Client
             this.parsedRTFramesToolStripMenuItem,
             this.rawPIFramesToolStripMenuItem});
             this.exportRDSToolStripMenuItem.Name = "exportRDSToolStripMenuItem";
-            this.exportRDSToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exportRDSToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
             this.exportRDSToolStripMenuItem.Text = "Export RDS";
             // 
             // rawPSFramesToolStripMenuItem
@@ -912,8 +912,35 @@ namespace IQArchiveManager.Client
             // rDSDSPToolStripMenuItem
             // 
             this.rDSDSPToolStripMenuItem.Name = "rDSDSPToolStripMenuItem";
-            this.rDSDSPToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.rDSDSPToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
             this.rDSDSPToolStripMenuItem.Text = "RDS DSP";
+            // 
+            // tipsToolStripMenuItem
+            // 
+            this.tipsToolStripMenuItem.Name = "tipsToolStripMenuItem";
+            this.tipsToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
+            this.tipsToolStripMenuItem.Text = "Tips...";
+            this.tipsToolStripMenuItem.Click += new System.EventHandler(this.tipsToolStripMenuItem_Click);
+            // 
+            // itemsListSummaryLabel
+            // 
+            this.itemsListSummaryLabel.Location = new System.Drawing.Point(9, 518);
+            this.itemsListSummaryLabel.Name = "itemsListSummaryLabel";
+            this.itemsListSummaryLabel.Size = new System.Drawing.Size(616, 16);
+            this.itemsListSummaryLabel.TabIndex = 18;
+            this.itemsListSummaryLabel.Text = "Items";
+            // 
+            // recordingDateLabel
+            // 
+            this.recordingDateLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.recordingDateLabel.BackColor = System.Drawing.SystemColors.ControlLight;
+            this.recordingDateLabel.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.recordingDateLabel.Location = new System.Drawing.Point(1173, 27);
+            this.recordingDateLabel.Name = "recordingDateLabel";
+            this.recordingDateLabel.Padding = new System.Windows.Forms.Padding(5);
+            this.recordingDateLabel.Size = new System.Drawing.Size(97, 25);
+            this.recordingDateLabel.TabIndex = 19;
+            this.recordingDateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // clipGrid1
             // 
@@ -934,26 +961,12 @@ namespace IQArchiveManager.Client
             this.transportControls.TabIndex = 0;
             this.transportControls.TimeChanged += new IQArchiveManager.Client.Pre.PreProcessorFileStreamReader_Event(this.transportControls_TimeChanged);
             // 
-            // itemsListSummaryLabel
-            // 
-            this.itemsListSummaryLabel.Location = new System.Drawing.Point(9, 518);
-            this.itemsListSummaryLabel.Name = "itemsListSummaryLabel";
-            this.itemsListSummaryLabel.Size = new System.Drawing.Size(616, 16);
-            this.itemsListSummaryLabel.TabIndex = 18;
-            this.itemsListSummaryLabel.Text = "Items";
-            // 
-            // tipsToolStripMenuItem
-            // 
-            this.tipsToolStripMenuItem.Name = "tipsToolStripMenuItem";
-            this.tipsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.tipsToolStripMenuItem.Text = "Tips...";
-            this.tipsToolStripMenuItem.Click += new System.EventHandler(this.tipsToolStripMenuItem_Click);
-            // 
             // MainEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1385, 789);
+            this.Controls.Add(this.recordingDateLabel);
             this.Controls.Add(this.itemsListSummaryLabel);
             this.Controls.Add(this.recordingTimeLabel);
             this.Controls.Add(this.clipGrid1);
@@ -1071,5 +1084,6 @@ namespace IQArchiveManager.Client
         private System.Windows.Forms.ToolStripMenuItem filesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem tipsToolStripMenuItem;
+        private System.Windows.Forms.Label recordingDateLabel;
     }
 }
