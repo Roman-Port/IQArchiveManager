@@ -76,6 +76,10 @@ namespace IQArchiveManager.Client.RDS
             {
                 lastPi = a;
                 PushNewPi(timestamp, lastPi);
+            } else if (lastFramePi != null)
+            {
+                //Extend timestamp
+                lastFramePi.last = timestamp;
             }
 
             //Decode group type and version

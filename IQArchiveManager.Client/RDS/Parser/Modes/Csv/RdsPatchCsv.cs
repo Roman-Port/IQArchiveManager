@@ -133,7 +133,7 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
             }
 
             //We will now terminate messages when the EOM message is triggered
-            foreach (var o in output)
+            /*foreach (var o in output)
             {
                 if (o is ParsedRdsValue<string> point)
                 {
@@ -150,7 +150,7 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
                     if (eom != null)
                         o.last = eom.first;
                 }
-            }
+            }*/
 
             //Fill in gaps in data
             if (output.Count == 0)
