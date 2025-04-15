@@ -89,6 +89,7 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
             }
 
             //Begin processing all PI frames
+            long fileLengthSamples = ctx.FileLengthSamples;
             Dictionary<ushort, CsvHistoryDatabase> databases = new Dictionary<ushort, CsvHistoryDatabase>();
             List<RdsValue<string>> output = new List<RdsValue<string>>();
             RdsValue<string> last = null;
@@ -127,13 +128,14 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
 
                     //Insert event (the end time will be updated somewhere else)
                     ParsedRdsValue<string> evt = new ParsedRdsValue<string>(i, sample, $"{i.Artist} // {i.Title}");
+                    evt.last = fileLengthSamples;
                     output.Add(evt);
                     last = evt;
                 }
             }
 
             //We will now terminate messages when the EOM message is triggered
-            /*foreach (var o in output)
+            foreach (var o in output)
             {
                 if (o is ParsedRdsValue<string> point)
                 {
@@ -150,7 +152,7 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
                     if (eom != null)
                         o.last = eom.first;
                 }
-            }*/
+            }
 
             //Fill in gaps in data
             if (output.Count == 0)
@@ -172,6 +174,15 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
                         output.Insert(i + 1, new RdsValue<string>(output[i].last, output[i + 1].first, ""));
                     }
                 }
+
+                //Add empty item between last recognized sample and end of file
+                //If this already goes up to the end of the file, make it one sample long after it
+                //The editor just needs an empty frame at the end
+                long terminatorEnd = fileLengthSamples;
+                RdsValue<string> lastPoint = output[output.Count - 1];
+                if (fileLengthSamples <= lastPoint.last)
+                    terminatorEnd = lastPoint.last + 1;
+                output.Add(new RdsValue<string>(lastPoint.last, terminatorEnd, ""));
             }
 
             return output;

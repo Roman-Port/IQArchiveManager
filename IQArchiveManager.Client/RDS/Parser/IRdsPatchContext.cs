@@ -8,6 +8,8 @@ namespace IQArchiveManager.Client.RDS.Parser
 {
     public interface IRdsPatchContext
     {
+        long FileLengthSamples { get; }
+
         DateTime GetTimeOfFrameStart<T>(RdsValue<T> value);
         DateTime GetTimeOfFrameEnd<T>(RdsValue<T> value);
         long GetSampleFromTime(DateTime time);

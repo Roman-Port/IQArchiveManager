@@ -74,6 +74,8 @@ namespace IQArchiveManager.Client
 
         private string fileUserLocation; // The user-specified string the server includes to identify itself. May be null.
 
+        public long FileLengthSamples => transportControls.LengthSamples;
+
         private void MainEditor_Load(object sender, EventArgs e)
         {
             //Bind

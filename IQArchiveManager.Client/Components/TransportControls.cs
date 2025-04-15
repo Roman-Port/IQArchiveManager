@@ -73,6 +73,8 @@ namespace IQArchiveManager.Client.Components
         public PreProcessorFileStreamReader StreamAudio => audioStream;
         public PreProcessorFileStreamReader StreamFft => fftStream;
 
+        public long LengthSamples => audioStream.Length; // 8-bit mono samples
+
         private const long SCROLLBAR_SCALE_FACTOR = 1;
         private const int THUMB_SKIP = 3;
 
