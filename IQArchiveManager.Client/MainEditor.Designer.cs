@@ -164,7 +164,7 @@ namespace IQArchiveManager.Client
             this.rdsRtLabel.Location = new System.Drawing.Point(710, 27);
             this.rdsRtLabel.Name = "rdsRtLabel";
             this.rdsRtLabel.Padding = new System.Windows.Forms.Padding(5);
-            this.rdsRtLabel.Size = new System.Drawing.Size(457, 25);
+            this.rdsRtLabel.Size = new System.Drawing.Size(440, 25);
             this.rdsRtLabel.TabIndex = 4;
             this.rdsRtLabel.Click += new System.EventHandler(this.rdsRtLabel_Click);
             // 
@@ -564,6 +564,7 @@ namespace IQArchiveManager.Client
             this.editedClipsList.Name = "editedClipsList";
             this.editedClipsList.Size = new System.Drawing.Size(317, 250);
             this.editedClipsList.TabIndex = 21;
+            this.editedClipsList.DoubleClick += new System.EventHandler(this.editedClipsList_DoubleClick);
             // 
             // btnFileDelete
             // 
@@ -935,10 +936,10 @@ namespace IQArchiveManager.Client
             this.recordingDateLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.recordingDateLabel.BackColor = System.Drawing.SystemColors.ControlLight;
             this.recordingDateLabel.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.recordingDateLabel.Location = new System.Drawing.Point(1173, 27);
+            this.recordingDateLabel.Location = new System.Drawing.Point(1156, 27);
             this.recordingDateLabel.Name = "recordingDateLabel";
             this.recordingDateLabel.Padding = new System.Windows.Forms.Padding(5);
-            this.recordingDateLabel.Size = new System.Drawing.Size(97, 25);
+            this.recordingDateLabel.Size = new System.Drawing.Size(114, 25);
             this.recordingDateLabel.TabIndex = 19;
             this.recordingDateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 

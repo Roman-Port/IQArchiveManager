@@ -17,5 +17,10 @@ namespace IQArchiveManager.Common.IO.Editor.Post
 
         [JsonProperty("end")]
         public double End { get; set; }
+
+        public override string ToString()
+        {
+            return Data.ToString();
+        }
     }
 }

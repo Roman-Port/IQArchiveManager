@@ -168,7 +168,7 @@ namespace IQArchiveManager.Client
 
             //Add any existing items in the post file to the list
             foreach (var e in outputWriter.Edits)
-                editedClipsList.Items.Add(e.Data.ToString());
+                editedClipsList.Items.Add(e);
 
             //Set buttons
             btnFileSave.Enabled = editedClipsList.Items.Count != 0;
@@ -491,12 +491,13 @@ namespace IQArchiveManager.Client
             };
 
             //Add to output file
-            outputWriter.AddEdit(new TrackEditInfo
+            TrackEditInfo edit = new TrackEditInfo
             {
                 Data = clip,
                 Start = timeIn,
                 End = timeOut
-            });
+            };
+            outputWriter.AddEdit(edit);
 
             //Add to clip database
             db.AddClip(clip);
@@ -508,10 +509,15 @@ namespace IQArchiveManager.Client
             matchedRdsParser = -1;
 
             //Add name to list just for notetaking
-            editedClipsList.Items.Add(clip.ToString());
+            editedClipsList.Items.Add(edit);
+            RefreshSaveButtonActivation();
+            btnAddClip.Enabled = false;
+        }
+
+        private void RefreshSaveButtonActivation()
+        {
             btnFileSave.Enabled = editedClipsList.Items.Count != 0;
             btnFileDelete.Enabled = editedClipsList.Items.Count == 0;
-            btnAddClip.Enabled = false;
         }
 
         private void SelectFromRds(RdsValue<string> rt)
@@ -1141,6 +1147,41 @@ namespace IQArchiveManager.Client
         private void tipsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             new EditorTipsForm().ShowDialog();
+        }
+
+        private void editedClipsList_DoubleClick(object sender, EventArgs e)
+        {
+            //Ignore if no selection
+            if (editedClipsList.SelectedIndex == -1)
+                return;
+
+            //Pop the selected item from list
+            TrackEditInfo edit = (TrackEditInfo)editedClipsList.Items[editedClipsList.SelectedIndex];
+            editedClipsList.Items.RemoveAt(editedClipsList.SelectedIndex);
+
+            //Remove from file
+            outputWriter.Edits.Remove(edit);
+            outputWriter.Save();
+
+            //Set in transport controls
+            transportControls.SetSelectionRegion(TimeSpan.FromSeconds(edit.Start), TimeSpan.FromSeconds(edit.End));
+
+            //Set in dialog box
+            inputCall.Text = edit.Data.Title;
+            typeBtnSong.Checked = true;
+            inputArtist.Text = edit.Data.Artist;
+            inputTitle.Text = edit.Data.Title;
+            inputPrefix.Text = edit.Data.Prefix;
+            inputSuffix.Text = edit.Data.Suffix;
+            inputNotes.Text = edit.Data.Notes;
+            inputFlagRds.Checked = edit.Data.FlagRds;
+            inputFlagHd.Checked = edit.Data.FlagHd;
+            inputFlagOk.Checked = edit.Data.FlagOk;
+
+            //Refresh data
+            RefreshClipsGrid();
+            RefreshSaveButtonActivation();
+            btnAddClip.Enabled = true;
         }
     }
 }

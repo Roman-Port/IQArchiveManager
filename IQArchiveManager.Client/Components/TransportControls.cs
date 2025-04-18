@@ -415,6 +415,11 @@ namespace IQArchiveManager.Client.Components
             SetSelectionRegion(TimeToSample(start), TimeToSample(end));
         }
 
+        public void SetSelectionRegion(TimeSpan start, TimeSpan end)
+        {
+            SetSelectionRegion((long)(start.TotalSeconds * MainEditor.AUDIO_SAMPLE_RATE), (long)(end.TotalSeconds * MainEditor.AUDIO_SAMPLE_RATE));
+        }
+
         /// <summary>
         /// Converts a timestamp to a sample within the recording.
         /// </summary>

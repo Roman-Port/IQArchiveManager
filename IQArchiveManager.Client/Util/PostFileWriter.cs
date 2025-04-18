@@ -49,7 +49,7 @@ namespace IQArchiveManager.Client.Util
         /// <summary>
         /// Gets all current edits in the file.
         /// </summary>
-        public IEnumerable<TrackEditInfo> Edits => data.Edits;
+        public List<TrackEditInfo> Edits => data.Edits;
 
         /// <summary>
         /// Adds a new edit to the file and saves it.
