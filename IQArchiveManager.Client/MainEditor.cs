@@ -1163,11 +1163,18 @@ namespace IQArchiveManager.Client
             outputWriter.Edits.Remove(edit);
             outputWriter.Save();
 
+            //Remove from database
+            if (db.TryFindClipById(edit.Data.Id, out TrackClipInfo dbClip))
+            {
+                db.Clips.Remove(dbClip);
+                db.Save();
+            }
+
             //Set in transport controls
             transportControls.SetSelectionRegion(TimeSpan.FromSeconds(edit.Start), TimeSpan.FromSeconds(edit.End));
 
             //Set in dialog box
-            inputCall.Text = edit.Data.Title;
+            inputCall.Text = edit.Data.Station;
             typeBtnSong.Checked = true;
             inputArtist.Text = edit.Data.Artist;
             inputTitle.Text = edit.Data.Title;

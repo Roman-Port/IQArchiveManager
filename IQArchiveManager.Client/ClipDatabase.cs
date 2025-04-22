@@ -131,6 +131,18 @@ namespace IQArchiveManager.Client
             return db.Persistent[key];
         }
 
+        /// <summary>
+        /// Attempts to locate a clip by the matching ID. If found, returns true and sets clip, otherwise returns false.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="clip"></param>
+        /// <returns></returns>
+        public bool TryFindClipById(string id, out TrackClipInfo clip)
+        {
+            clip = Clips.Where(x => x.Id == id).FirstOrDefault();
+            return clip != null;
+        }
+
         public void Save()
         {
             //We shouldn't ever call this if no save is loaded but confirm this is the case
