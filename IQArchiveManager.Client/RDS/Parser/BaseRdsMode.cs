@@ -40,29 +40,59 @@ namespace IQArchiveManager.Client.RDS.Parser
             int deliminerA = rt.IndexOfAny(out int deliminerAEnd, " - ", " by ", " By ", " BY ");
             int deliminerB = rt.LastIndexOfAny(out int deliminerBEnd, " - ", " on ", " On ", " ON ");
 
-            //Determine from this state
+            //Split into segments
+            string[] segments = new string[3];
             if (deliminerA != -1 && deliminerB != -1 && deliminerA == deliminerB)
             {
                 //Only one deliminer...only use the first one
-                trackTitle = rt.Substring(0, deliminerA);
-                trackArtist = rt.Substring(deliminerAEnd);
-                stationName = null;
-                return true;
+                segments[0] = rt.Substring(0, deliminerA);
+                segments[1] = rt.Substring(deliminerAEnd);
+                segments[2] = null;
             }
-            if (deliminerA != -1 && deliminerB != -1 && deliminerB > deliminerA)
+            else if (deliminerA != -1 && deliminerB != -1 && deliminerB > deliminerA)
             {
                 //Two deliminers...contains title, artist, and station name
-                trackTitle = rt.Substring(0, deliminerA);
-                trackArtist = rt.Substring(deliminerAEnd, deliminerB - deliminerAEnd);
-                stationName = rt.Substring(deliminerBEnd);
-                return true;
+                segments[0] = rt.Substring(0, deliminerA);
+                segments[1] = rt.Substring(deliminerAEnd, deliminerB - deliminerAEnd);
+                segments[2] = rt.Substring(deliminerBEnd);
+            }
+            else
+            {
+                //Failed
+                trackTitle = null;
+                trackArtist = null;
+                stationName = null;
+                return false;
             }
 
-            //Failed
-            trackTitle = null;
-            trackArtist = null;
-            stationName = null;
-            return false;
+            //Decode segments
+            SelectFromSegments(segments, out trackTitle, out trackArtist, out stationName);
+            return true;
+        }
+
+        /// <summary>
+        /// Splits three segments into title, artist and station name
+        /// </summary>
+        /// <param name="seg"></param>
+        /// <param name="title"></param>
+        /// <param name="artist"></param>
+        /// <param name="stationName"></param>
+        protected virtual void SelectFromSegments(string[] seg, out string title, out string artist, out string stationName)
+        {
+            //HACK: Flip for specific station...this should probably be made into a decoding mode
+            if (seg[0] == "KX92")
+            {
+                //Decode as <station> - <title> - <artist>
+                title = seg[1];
+                artist = seg[2];
+                stationName = seg[0];
+                return;
+            }
+
+            //Decode
+            title = seg[0];
+            artist = seg[1];
+            stationName = seg[2];
         }
 
         public abstract bool IsRecommended(IRdsPatchContext ctx, List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames);
