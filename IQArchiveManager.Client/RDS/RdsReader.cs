@@ -96,11 +96,17 @@ namespace IQArchiveManager.Client.RDS
 
         private bool GetValueAtSample<T>(long sample, List<RdsValue<T>> frames, out RdsValue<T> value)
         {
+            return GetValueAtSample(sample, frames, out value, out int _index);
+        }
+
+        private bool GetValueAtSample<T>(long sample, List<RdsValue<T>> frames, out RdsValue<T> value, out int index)
+        {
             lock(frames)
             {
                 //Set defaults
                 long start = -1;
                 long end = -1;
+                index = -1;
                 value = default(RdsValue<T>);
 
                 //Work backwards to find one
@@ -110,6 +116,7 @@ namespace IQArchiveManager.Client.RDS
                     {
                         start = frames[i].first;
                         value = frames[i];
+                        index = i;
                         if (i < frames.Count - 1)
                             end = frames[i + 1].first;
                         return true;
@@ -133,6 +140,11 @@ namespace IQArchiveManager.Client.RDS
                 return value;
             else
                 return null;
+        }
+
+        public bool TryGetRtIndexAtSample(long sample, out int index)
+        {
+            return GetValueAtSample(sample, rdsRtFramesParsed, out RdsValue<string> value, out index);
         }
 
         public RdsValue<ushort> GetPiAtSample(long sample)

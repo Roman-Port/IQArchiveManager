@@ -110,8 +110,11 @@ namespace IQArchiveManager.Client
             this.tipsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.itemsListSummaryLabel = new System.Windows.Forms.Label();
             this.recordingDateLabel = new System.Windows.Forms.Label();
+            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
+            this.blockCurrentRTToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.clipGrid1 = new IQArchiveManager.Client.Components.ClipGrid();
             this.transportControls = new IQArchiveManager.Client.Components.TransportControls();
+            this.btnSwapTitleArtist = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.prefixSuffixPanel.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -170,6 +173,7 @@ namespace IQArchiveManager.Client
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.btnSwapTitleArtist);
             this.groupBox1.Controls.Add(this.btnLockCall);
             this.groupBox1.Controls.Add(this.autoTgCall);
             this.groupBox1.Controls.Add(this.autoTgBtn);
@@ -430,7 +434,7 @@ namespace IQArchiveManager.Client
             | System.Windows.Forms.AnchorStyles.Right)));
             this.inputTitle.Location = new System.Drawing.Point(9, 137);
             this.inputTitle.Name = "inputTitle";
-            this.inputTitle.Size = new System.Drawing.Size(263, 20);
+            this.inputTitle.Size = new System.Drawing.Size(232, 20);
             this.inputTitle.TabIndex = 11;
             this.inputTitle.TextChanged += new System.EventHandler(this.InputUpdated);
             // 
@@ -449,7 +453,7 @@ namespace IQArchiveManager.Client
             | System.Windows.Forms.AnchorStyles.Right)));
             this.inputArtist.Location = new System.Drawing.Point(9, 98);
             this.inputArtist.Name = "inputArtist";
-            this.inputArtist.Size = new System.Drawing.Size(263, 20);
+            this.inputArtist.Size = new System.Drawing.Size(232, 20);
             this.inputArtist.TabIndex = 9;
             this.inputArtist.TextChanged += new System.EventHandler(this.InputUpdated);
             // 
@@ -624,7 +628,9 @@ namespace IQArchiveManager.Client
             this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.navigateToolStripMenuItem,
             this.debugToolStripMenuItem,
-            this.tipsToolStripMenuItem});
+            this.tipsToolStripMenuItem,
+            this.toolStripSeparator5,
+            this.blockCurrentRTToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             this.toolsToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
             this.toolsToolStripMenuItem.Text = "Tools";
@@ -636,7 +642,7 @@ namespace IQArchiveManager.Client
             this.jumpToolStripMenuItem,
             this.moveToolStripMenuItem});
             this.navigateToolStripMenuItem.Name = "navigateToolStripMenuItem";
-            this.navigateToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
+            this.navigateToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.navigateToolStripMenuItem.Text = "Navigate";
             this.navigateToolStripMenuItem.Visible = false;
             // 
@@ -868,7 +874,7 @@ namespace IQArchiveManager.Client
             this.exportRDSToolStripMenuItem,
             this.rDSDSPToolStripMenuItem});
             this.debugToolStripMenuItem.Name = "debugToolStripMenuItem";
-            this.debugToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
+            this.debugToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.debugToolStripMenuItem.Text = "Debug";
             // 
             // exportRDSToolStripMenuItem
@@ -919,7 +925,7 @@ namespace IQArchiveManager.Client
             // tipsToolStripMenuItem
             // 
             this.tipsToolStripMenuItem.Name = "tipsToolStripMenuItem";
-            this.tipsToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
+            this.tipsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.tipsToolStripMenuItem.Text = "Tips...";
             this.tipsToolStripMenuItem.Click += new System.EventHandler(this.tipsToolStripMenuItem_Click);
             // 
@@ -943,6 +949,18 @@ namespace IQArchiveManager.Client
             this.recordingDateLabel.TabIndex = 19;
             this.recordingDateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // toolStripSeparator5
+            // 
+            this.toolStripSeparator5.Name = "toolStripSeparator5";
+            this.toolStripSeparator5.Size = new System.Drawing.Size(177, 6);
+            // 
+            // blockCurrentRTToolStripMenuItem
+            // 
+            this.blockCurrentRTToolStripMenuItem.Name = "blockCurrentRTToolStripMenuItem";
+            this.blockCurrentRTToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.blockCurrentRTToolStripMenuItem.Text = "Block Current RT";
+            this.blockCurrentRTToolStripMenuItem.Click += new System.EventHandler(this.blockCurrentRTToolStripMenuItem_Click);
+            // 
             // clipGrid1
             // 
             this.clipGrid1.IsMini = true;
@@ -961,6 +979,17 @@ namespace IQArchiveManager.Client
             this.transportControls.Size = new System.Drawing.Size(1361, 240);
             this.transportControls.TabIndex = 0;
             this.transportControls.TimeChanged += new IQArchiveManager.Client.Pre.PreProcessorFileStreamReader_Event(this.transportControls_TimeChanged);
+            // 
+            // btnSwapTitleArtist
+            // 
+            this.btnSwapTitleArtist.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnSwapTitleArtist.Location = new System.Drawing.Point(247, 82);
+            this.btnSwapTitleArtist.Name = "btnSwapTitleArtist";
+            this.btnSwapTitleArtist.Size = new System.Drawing.Size(31, 75);
+            this.btnSwapTitleArtist.TabIndex = 24;
+            this.btnSwapTitleArtist.Text = "↕";
+            this.btnSwapTitleArtist.UseVisualStyleBackColor = true;
+            this.btnSwapTitleArtist.Click += new System.EventHandler(this.btnSwapTitleArtist_Click);
             // 
             // MainEditor
             // 
@@ -1086,5 +1115,8 @@ namespace IQArchiveManager.Client
         private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem tipsToolStripMenuItem;
         private System.Windows.Forms.Label recordingDateLabel;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
+        private System.Windows.Forms.ToolStripMenuItem blockCurrentRTToolStripMenuItem;
+        private System.Windows.Forms.Button btnSwapTitleArtist;
     }
 }

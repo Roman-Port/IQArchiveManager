@@ -9,6 +9,7 @@ using IQArchiveManager.Common.IO.Editor.Post;
 using IQArchiveManager.Common.IO.RDS;
 using NAudio.Wave;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RomanPort.LibSDR.Components;
 using RomanPort.LibSDR.Components.Digital.RDS;
 using RomanPort.LibSDR.Components.IO.WAV;
@@ -520,16 +521,31 @@ namespace IQArchiveManager.Client
             btnFileDelete.Enabled = editedClipsList.Items.Count == 0;
         }
 
-        private void SelectFromRds(RdsValue<string> rt)
+        private void SelectFromRds(int index)
         {
-            //Determine the index of this
-            lastSelectFromRdsIndex = rds.ParsedRtFrames.IndexOf(rt);
-            if (lastSelectFromRdsIndex == -1)
-                throw new Exception("SelectFromRds value is not in the list of parsed RDS frames.");
+            //Store index
+            lastSelectFromRdsIndex = index;
+
+            //Get
+            RdsValue<string> rt = rds.ParsedRtFrames[index];
+            var ignoreStore = db.GetPersistentStore("BLOCKED_RT");
+            if (!ignoreStore.ContainsKey("rt"))
+                ignoreStore["rt"] = new JArray();
+            string[] ignoreList = ignoreStore["rt"].ToObject<string[]>();
+
+            //Look at frames before this one and extend selection if they are on the ignore list
+            int startIndex = index;
+            while ((startIndex - 1) >= 0 && (ignoreList.Contains(rds.ParsedRtFrames[startIndex].value) || ignoreList.Contains(rds.ParsedRtFrames[startIndex - 1].value)))
+                startIndex--;
+
+            //Do the same for frames after this to extend in that direction
+            int endIndex = index;
+            while ((endIndex + 1) < rds.ParsedRtFrames.Count && (ignoreList.Contains(rds.ParsedRtFrames[endIndex].value) || ignoreList.Contains(rds.ParsedRtFrames[endIndex + 1].value)))
+                endIndex++;
 
             //Expand range to give us some leeway
-            long start = Math.Max(0, rt.first - (15 * AUDIO_SAMPLE_RATE));
-            long end = Math.Min(transportControls.StreamAudio.Length, rt.last + (30 + AUDIO_SAMPLE_RATE));
+            long start = Math.Max(0, rds.ParsedRtFrames[startIndex].first - (15 * AUDIO_SAMPLE_RATE));
+            long end = Math.Min(transportControls.StreamAudio.Length, rds.ParsedRtFrames[endIndex].last + (30 + AUDIO_SAMPLE_RATE));
 
             //Select region
             transportControls.SetSelectionRegion(start, end, (end - start) / 4);
@@ -608,7 +624,7 @@ namespace IQArchiveManager.Client
                 if (frame.last - frame.first >= AUDIO_SAMPLE_RATE * 20)
                 {
                     //Jump
-                    SelectFromRds(rds.ParsedRtFrames[newIndex]);
+                    SelectFromRds(newIndex);
                     break;
                 } else
                 {
@@ -621,15 +637,15 @@ namespace IQArchiveManager.Client
         private void btnAutoRds_Click(object sender, EventArgs e)
         {
             //Autodetect
-            RdsValue<string> rt = rds.GetRtAtSample(transportControls.StreamAudio.Position);
-            if (rt == null)
+            if (rds.TryGetRtIndexAtSample(transportControls.StreamAudio.Position, out int index))
             {
+                //Select
+                SelectFromRds(index);
+            } else
+            {
+                //Fail
                 MessageBox.Show("Failed to auto-detect RDS.", "Automatic Recognization Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
             }
-
-            //Select
-            SelectFromRds(rt);
         }
 
         private void autoTgCall_TextChanged(object sender, EventArgs e)
@@ -768,6 +784,7 @@ namespace IQArchiveManager.Client
                 prefixSuffixPanel.Visible = true;
                 rdsPatchMethod.Visible = true;
                 btnAutoRds.Visible = true;
+                btnSwapTitleArtist.Visible = true;
             }
             if (typeBtnLiner.Checked)
             {
@@ -777,6 +794,7 @@ namespace IQArchiveManager.Client
                 prefixSuffixPanel.Visible = false;
                 rdsPatchMethod.Visible = false;
                 btnAutoRds.Visible = false;
+                btnSwapTitleArtist.Visible = false;
             }
             InputUpdated(null, null);
         }
@@ -1189,6 +1207,44 @@ namespace IQArchiveManager.Client
             RefreshClipsGrid();
             RefreshSaveButtonActivation();
             btnAddClip.Enabled = true;
+        }
+
+        private void blockCurrentRTToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //Get current RT
+            RdsValue<string> rt = rds.GetRtAtSample(audioPlayer.Stream.Position);
+            if (rt == null)
+            {
+                MessageBox.Show("No RT is currently selected.", "Block RT", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            //Get store
+            var ignoreStore = db.GetPersistentStore("BLOCKED_RT");
+            if (!ignoreStore.ContainsKey("rt"))
+                ignoreStore["rt"] = new JArray();
+            var ignoreArr = (JArray)ignoreStore["rt"];
+
+            //Check if it already contains this
+            if (ignoreArr.ToObject<string[]>().Contains(rt.value))
+            {
+                MessageBox.Show("Blocked RT list already contains this value:\r\n\r\n" + rt.value, "Block RT", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            //Add and save
+            ignoreArr.Add(rt.value);
+            db.Save();
+
+            //Show message
+            MessageBox.Show("Added RT to block list:\r\n\r\n" + rt.value, "Block RT", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void btnSwapTitleArtist_Click(object sender, EventArgs e)
+        {
+            string temp = inputArtist.Text;
+            inputArtist.Text = inputTitle.Text;
+            inputTitle.Text = temp;
         }
     }
 }
