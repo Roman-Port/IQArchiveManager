@@ -14,6 +14,7 @@ namespace IQArchiveManager.Client.RDS.Parser
         KZCR = 3,
         KZCR_LEGACY = 4,
         CSV = 5,
-        NATIVE_FLIPPED = 6
+        NATIVE_FLIPPED = 6,
+        KZCR_2025 = 7
     }
 }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IQArchiveManager.Client.RDS.Parser.Modes.KZCR;
 
 namespace IQArchiveManager.Client.RDS.Parser
 {
@@ -25,6 +26,7 @@ namespace IQArchiveManager.Client.RDS.Parser
             {
                 new RdsPatchNative(),
                 new RdsPatchNativeFlipped(),
+                new RdsPatchKzcrSponsors(),
                 new RdsPatchCsv(db),
                 new RdsPatchKzcr(db),
                 new RdsPatchKzcrLegacy(db),

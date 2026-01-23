@@ -76,6 +76,7 @@ namespace IQArchiveManager.Client
         private string fileUserLocation; // The user-specified string the server includes to identify itself. May be null.
 
         public long FileLengthSamples => transportControls.LengthSamples;
+        public DateTime FileStartTime => transportControls.SourceBeginTime;
 
         private void MainEditor_Load(object sender, EventArgs e)
         {

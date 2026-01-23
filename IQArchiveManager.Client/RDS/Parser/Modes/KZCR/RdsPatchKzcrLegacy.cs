@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IQArchiveManager.Client.RDS.Parser.Modes
+namespace IQArchiveManager.Client.RDS.Parser.Modes.KZCR
 {
     public class RdsPatchKzcrLegacy : RdsPatchKzcr
     {
@@ -18,7 +18,7 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes
 
         public override bool IsRecommended(IRdsPatchContext ctx, List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
         {
-            return false;
+            return KzcrCommon.Identify(rdsPiFrames, ctx.FileStartTime) == KzcrMatchMode.PS_SCROLL_TILDE;
         }
 
         protected override List<RdsValue<string>> Patch(List<RdsValue<string>> tokens)

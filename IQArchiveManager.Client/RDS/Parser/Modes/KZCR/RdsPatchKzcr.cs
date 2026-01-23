@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Windows.Forms;
 
-namespace IQArchiveManager.Client.RDS.Parser.Modes
+namespace IQArchiveManager.Client.RDS.Parser.Modes.KZCR
 {
     public class RdsPatchKzcr : PsParsedPatch
     {
@@ -39,15 +39,7 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes
 
         public override bool IsRecommended(IRdsPatchContext ctx, List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
         {
-            //Search for KZCR-FM's PI code. If it's found, use the KZCR method
-            foreach (var pi in rdsPiFrames)
-            {
-                if (pi.value == 0x5249)
-                {
-                    return true;
-                }
-            }
-            return false;
+            return KzcrCommon.Identify(rdsPiFrames, ctx.FileStartTime) == KzcrMatchMode.PS_SCROLL_NEW;
         }
 
         public override bool TryParse(string rt, out string trackTitle, out string trackArtist, out string stationName, bool fast)

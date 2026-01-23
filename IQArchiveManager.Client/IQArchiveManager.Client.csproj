@@ -202,15 +202,18 @@
       <DependentUpon>CsvProfileEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="RDS\Parser\Modes\Csv\RdsPatchCsv.cs" />
+    <Compile Include="RDS\Parser\Modes\KZCR\KzcrCommon.cs" />
+    <Compile Include="RDS\Parser\Modes\KZCR\KzcrMatchMode.cs" />
     <Compile Include="RDS\Parser\Modes\PsParsedPatch.cs" />
+    <Compile Include="RDS\Parser\Modes\KZCR\RdsPatchKzcrSponsors.cs" />
     <Compile Include="RDS\Parser\Modes\RdsPatchNativeFlipped.cs" />
     <Compile Include="RDS\Parser\RdsParserStore.cs" />
     <Compile Include="RDS\Parser\RdsModeId.cs" />
-    <Compile Include="RDS\Parser\Modes\RdsPatchKzcrLegacy.cs" />
+    <Compile Include="RDS\Parser\Modes\KZCR\RdsPatchKzcrLegacy.cs" />
     <Compile Include="RDS\Parser\Modes\RdsPatchNoDelimiters.cs" />
     <Compile Include="RDS\Parser\PatchHelper.cs" />
     <Compile Include="RDS\Parser\Modes\RdsPatchCumulus.cs" />
-    <Compile Include="RDS\Parser\Modes\RdsPatchKzcr.cs" />
+    <Compile Include="RDS\Parser\Modes\KZCR\RdsPatchKzcr.cs" />
     <Compile Include="RDS\Parser\Modes\RdsPatchNative.cs" />
     <Compile Include="RDS\RdsReader.cs" />
     <Compile Include="ClipDatabase.cs" />
