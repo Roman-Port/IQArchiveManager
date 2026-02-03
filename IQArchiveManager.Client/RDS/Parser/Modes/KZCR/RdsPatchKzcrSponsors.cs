@@ -9,7 +9,7 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.KZCR
     public class RdsPatchKzcrSponsors : RdsPatchNative
     {
         private const string SONG_HEADER = "Z103 - ";
-        //private const string SPONSOR = "There is a lot to love at R&G Subaru online at RGSUBARU.COM";
+        private const string SPONSOR = "There is a lot to love at R&G Subaru online at RGSUBARU.COM";
         private const double SPONSOR_LEN_SECS = 65;
         private const long LAG_BACK_ADJUST = 30 * MainEditor.AUDIO_SAMPLE_RATE;
         private const long LAG_FORWARD_ADJUST = 25 * MainEditor.AUDIO_SAMPLE_RATE;
@@ -25,7 +25,7 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.KZCR
             foreach (var f in rdsRtFrames)
             {
                 //Check if this is a sponsor or a song
-                if (f.value.StartsWith("Z103 - "))
+                if (!f.value.StartsWith(SPONSOR))
                 {
                     //Check if this is returning to the same song, in which case it will be extended
                     if (lastSong != null && lastSong.value == f.value)

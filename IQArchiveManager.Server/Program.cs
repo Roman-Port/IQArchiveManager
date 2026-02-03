@@ -10,7 +10,7 @@ namespace IQArchiveManager.Server
     class Program
     {
         private static List<IArchiveTaskStore> taskGenerators = new List<IArchiveTaskStore>();
-        private static ArchiveWorkerThread[] workers = new ArchiveWorkerThread[6];
+        private static ArchiveWorkerThread[] workers;
         private static volatile bool stop = false;
         private static volatile int errors = 0;
 
@@ -23,6 +23,18 @@ namespace IQArchiveManager.Server
             string location = null;
             if (args.Length >= 1)
                 location = args[0];
+
+            //Get the optional thread count
+            int threadCount = 6;
+            if (args.Length >= 2)
+            {
+                if (!int.TryParse(args[1], out threadCount))
+                {
+                    Console.WriteLine("Invalid number of threads.");
+                    return;
+                }
+            }
+            workers = new ArchiveWorkerThread[threadCount];
 
             //Get current directory
             string dir = Directory.GetCurrentDirectory().TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
@@ -107,6 +119,7 @@ namespace IQArchiveManager.Server
             int minor;
             IQAMNative.GetVersion(&major, &minor);
             Console.WriteLine($"Loaded native version {major}.{minor}.");
+            Thread.Sleep(2000);
         }
 
         static void PrintToLine(int line, string message)
