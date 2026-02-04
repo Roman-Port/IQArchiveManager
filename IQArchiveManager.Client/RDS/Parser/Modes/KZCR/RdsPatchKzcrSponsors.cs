@@ -11,8 +11,8 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.KZCR
         private const string SONG_HEADER = "Z103 - ";
         private const string SPONSOR = "There is a lot to love at R&G Subaru online at RGSUBARU.COM";
         private const double SPONSOR_LEN_SECS = 65;
-        private const long LAG_BACK_ADJUST = 30 * MainEditor.AUDIO_SAMPLE_RATE;
-        private const long LAG_FORWARD_ADJUST = 25 * MainEditor.AUDIO_SAMPLE_RATE;
+        private const byte LAG_BACK_ADJUST = 30;
+        private const byte LAG_FORWARD_ADJUST = 25;
 
         public override string Label => "KZCR w/ sponsors";
         public override RdsModeId Id => RdsModeId.KZCR_2025;
@@ -36,8 +36,8 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.KZCR
                     {
                         //New song; Add to list
                         lastSong = f.Clone();
-                        lastSong.first = Math.Max(0, f.first - LAG_BACK_ADJUST);
-                        lastSong.last += LAG_FORWARD_ADJUST;
+                        lastSong.selectExtraStart += LAG_BACK_ADJUST;
+                        lastSong.selectExtraEnd += LAG_FORWARD_ADJUST;
                         result.Add(lastSong);
                     }
 
@@ -55,6 +55,9 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.KZCR
                 {
                     //Insert this
                     result.Add(f.Clone());
+
+                    //Clear last song
+                    lastSong = null;
                 }
             }
 

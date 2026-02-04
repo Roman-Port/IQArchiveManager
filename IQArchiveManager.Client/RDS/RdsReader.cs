@@ -80,7 +80,7 @@ namespace IQArchiveManager.Client.RDS
         public void SwitchPatcher(BaseRdsMode patcher, IRdsPatchContext ctx)
         {
             OnPatcherUpdated?.Invoke(this, patcher);
-            rdsRtFramesParsed = patcher.Patch(ctx, new List<RdsValue<string>>(decoder.PsFrames.Select(x => x.Clone())), new List<RdsValue<string>>(decoder.RtFrames.Select(x => x.Clone())), new List<RdsValue<ushort>>(decoder.PiFrames.Select(x => x.Clone())));
+            rdsRtFramesParsed = patcher.Patch(ctx, new List<RdsValue<string>>(decoder.PsFrames.Select(x => x.Clone())), new List<RdsValue<string>>(decoder.RtFrames.Select(x => x.Clone())), new List<RdsValue<ushort>>(decoder.PiFrames.Select(x => x.Clone())));        
             MergeRt();
         }
 
@@ -104,24 +104,18 @@ namespace IQArchiveManager.Client.RDS
             lock(frames)
             {
                 //Set defaults
-                long start = -1;
-                long end = -1;
                 index = -1;
                 value = default(RdsValue<T>);
 
-                //Work backwards to find one
-                for (int i = frames.Count - 1; i >= 0; i--)
+                //Enumerate frames until we find one in range
+                for (int i = 0; i < frames.Count; i++)
                 {
-                    if (frames[i].first <= sample)
-                    {
-                        start = frames[i].first;
-                        value = frames[i];
-                        index = i;
-                        if (i < frames.Count - 1)
-                            end = frames[i + 1].first;
+                    index = i;
+                    value = frames[i];
+                    if (value.first <= sample && value.last > sample)
                         return true;
-                    }
                 }
+
                 return false;
             }
         }

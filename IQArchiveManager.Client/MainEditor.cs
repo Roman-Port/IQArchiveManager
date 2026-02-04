@@ -545,8 +545,8 @@ namespace IQArchiveManager.Client
                 endIndex++;
 
             //Expand range to give us some leeway
-            long start = Math.Max(0, rds.ParsedRtFrames[startIndex].first - (15 * AUDIO_SAMPLE_RATE));
-            long end = Math.Min(transportControls.StreamAudio.Length, rds.ParsedRtFrames[endIndex].last + (30 + AUDIO_SAMPLE_RATE));
+            long start = Math.Max(0, rds.ParsedRtFrames[startIndex].first - (rds.ParsedRtFrames[index].selectExtraStart * AUDIO_SAMPLE_RATE));
+            long end = Math.Min(transportControls.StreamAudio.Length, rds.ParsedRtFrames[endIndex].last + (rds.ParsedRtFrames[index].selectExtraEnd * AUDIO_SAMPLE_RATE));
 
             //Select region
             transportControls.SetSelectionRegion(start, end, (end - start) / 4);
@@ -777,26 +777,26 @@ namespace IQArchiveManager.Client
 
         private void UpdateEntryLayout()
         {
+            //Update basics
+            bool titleVisable = true;
             if (typeBtnSong.Checked)
             {
                 labelArtist.Text = "Artist";
-                labelTitle.Visible = true;
-                inputTitle.Visible = true;
-                prefixSuffixPanel.Visible = true;
-                rdsPatchMethod.Visible = true;
-                btnAutoRds.Visible = true;
-                btnSwapTitleArtist.Visible = true;
+                titleVisable = true;
             }
             if (typeBtnLiner.Checked)
             {
                 labelArtist.Text = "Title";
-                labelTitle.Visible = false;
-                inputTitle.Visible = false;
-                prefixSuffixPanel.Visible = false;
-                rdsPatchMethod.Visible = false;
-                btnAutoRds.Visible = false;
-                btnSwapTitleArtist.Visible = false;
+                titleVisable = false;
             }
+
+            //Update visiblity
+            labelTitle.Visible = titleVisable;
+            inputTitle.Visible = titleVisable;
+            prefixSuffixPanel.Visible = titleVisable;
+            btnSwapTitleArtist.Visible = titleVisable;
+
+            //Update metadata
             InputUpdated(null, null);
         }
 
@@ -1224,21 +1224,23 @@ namespace IQArchiveManager.Client
             var ignoreStore = db.GetPersistentStore("BLOCKED_RT");
             if (!ignoreStore.ContainsKey("rt"))
                 ignoreStore["rt"] = new JArray();
-            var ignoreArr = (JArray)ignoreStore["rt"];
+            var ignoreArr = ((JArray)ignoreStore["rt"]).ToObject<List<string>>();
 
             //Check if it already contains this
-            if (ignoreArr.ToObject<string[]>().Contains(rt.value))
+            bool removed = ignoreArr.Remove(rt.value);
+            if (!removed)
             {
-                MessageBox.Show("Blocked RT list already contains this value:\r\n\r\n" + rt.value, "Block RT", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
+                //Add
+                ignoreArr.Add(rt.value);
+                removed = false;
             }
 
-            //Add and save
-            ignoreArr.Add(rt.value);
+            //Save
+            ignoreStore["rt"] = JArray.FromObject(ignoreArr);
             db.Save();
 
             //Show message
-            MessageBox.Show("Added RT to block list:\r\n\r\n" + rt.value, "Block RT", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show($"{(removed ? "Removed" : "Added")} RT {(removed ? "from" : "to")} block list:\r\n\r\n" + rt.value, "Block RT", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnSwapTitleArtist_Click(object sender, EventArgs e)
