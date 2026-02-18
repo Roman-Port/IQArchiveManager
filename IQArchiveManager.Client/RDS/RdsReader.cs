@@ -17,6 +17,7 @@ namespace IQArchiveManager.Client.RDS
     public class RdsReader
     {
         private List<RdsValue<string>> rdsRtFramesParsed = new List<RdsValue<string>>();
+        private List<RdsValue<ushort>> rdsPiFramesParsed = new List<RdsValue<ushort>>();
         private ulong cachedRecommended; // bitfield of recommended patchers
 
         private BasicRdsDecoder decoder = new BasicRdsDecoder();
@@ -34,6 +35,7 @@ namespace IQArchiveManager.Client.RDS
 
         public List<RdsValue<string>> PsFrames => decoder.PsFrames;
         public List<RdsValue<string>> ParsedRtFrames => rdsRtFramesParsed;
+        public List<RdsValue<ushort>> ParsedPiFrames => rdsPiFramesParsed;
         public List<RdsValue<string>> RawRtFrames => decoder.RtFrames;
         public List<RdsValue<ushort>> RawPiFrames => decoder.PiFrames;
 
@@ -87,7 +89,8 @@ namespace IQArchiveManager.Client.RDS
         {
             OnPatcherUpdated?.Invoke(this, patcher);
             activePatcher = patcher;
-            rdsRtFramesParsed = patcher.Patch(ctx, new List<RdsValue<string>>(decoder.PsFrames.Select(x => x.Clone())), new List<RdsValue<string>>(decoder.RtFrames.Select(x => x.Clone())), new List<RdsValue<ushort>>(decoder.PiFrames.Select(x => x.Clone())));        
+            rdsPiFramesParsed = new List<RdsValue<ushort>>(decoder.PiFrames.Select(x => x.Clone()));
+            rdsRtFramesParsed = patcher.Patch(ctx, new List<RdsValue<string>>(decoder.PsFrames.Select(x => x.Clone())), new List<RdsValue<string>>(decoder.RtFrames.Select(x => x.Clone())), rdsPiFramesParsed);        
             MergeRt();
         }
 
@@ -150,7 +153,7 @@ namespace IQArchiveManager.Client.RDS
 
         public RdsValue<ushort> GetPiAtSample(long sample)
         {
-            if (GetValueAtSample(sample, decoder.PiFrames, out RdsValue<ushort> value))
+            if (GetValueAtSample(sample, rdsPiFramesParsed, out RdsValue<ushort> value))
                 return value;
             else
                 return null;

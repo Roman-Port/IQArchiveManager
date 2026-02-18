@@ -209,6 +209,10 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
             {
                 //Process whole recording as a chunk with the desired profile
                 LoadCsvChunk(profiles[(ushort)targetPiCode], ctx, 0, fileLengthSamples, databases, output, fileLengthSamples, ref last);
+
+                //Clear out PIs as well
+                rdsPiFrames.Clear();
+                rdsPiFrames.Add(new RdsValue<ushort>(0, fileLengthSamples, (ushort)targetPiCode));
             }
 
             //We will now terminate messages when the EOM message is triggered
