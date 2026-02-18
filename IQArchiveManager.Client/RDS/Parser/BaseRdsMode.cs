@@ -11,6 +11,11 @@ namespace IQArchiveManager.Client.RDS.Parser
 {
     public abstract class BaseRdsMode
     {
+        /// <summary>
+        /// Event raised when this parser requests the editor to reload.
+        /// </summary>
+        public event Action<BaseRdsMode> RefreshRequested;
+
         public abstract RdsModeId Id { get; }
 
         public abstract string Label { get; }
@@ -20,6 +25,15 @@ namespace IQArchiveManager.Client.RDS.Parser
         public virtual void ShowSetupWindow()
         {
             throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// An optional function called when the editor is first created
+        /// </summary>
+        /// <param name="editor"></param>
+        public virtual void EditorInitialized(MainEditor editor)
+        {
+
         }
 
         public virtual bool TryParse(RdsValue<string> rt, out string trackTitle, out string trackArtist, out string stationName, bool fast)
@@ -97,5 +111,13 @@ namespace IQArchiveManager.Client.RDS.Parser
 
         public abstract bool IsRecommended(IRdsPatchContext ctx, List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames);
         public abstract List<RdsValue<string>> Patch(IRdsPatchContext ctx, List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames);
+
+        /// <summary>
+        /// Requests the editor to reload parsed frames.
+        /// </summary>
+        protected void RequestReload()
+        {
+            RefreshRequested?.Invoke(this);
+        }
     }
 }

@@ -122,9 +122,33 @@ namespace IQArchiveManager.Client
                 filesToolStripMenuItem.DropDownItems.Add(item);
             }
 
+            //Initialize parsers
+            foreach (var p in rds.rdsModes)
+            {
+                p.EditorInitialized(this);
+                p.RefreshRequested += RdsParserRefreshRequested;
+            }
+
             //Set up project
             OpenNextFile();
             UpdateEntryLayout();
+        }
+
+        /// <summary>
+        /// Event raised when a RDS patcher requests that the editor reload parsed frames.
+        /// </summary>
+        /// <param name="obj"></param>
+        private void RdsParserRefreshRequested(BaseRdsMode parser)
+        {
+            //Reject if not current parser
+            if (parser != rds.ActivePatcher)
+            {
+                Console.WriteLine("Non-acive parser requested reload; Ignored!");
+                return;
+            }
+
+            //Reload
+            rds.SwitchPatcher(parser, this);
         }
 
         private void FileItemClicked(object sender, EventArgs e)
@@ -134,6 +158,10 @@ namespace IQArchiveManager.Client
 
         private void MainEditor_FormClosing(object sender, FormClosingEventArgs e)
         {
+            //Remove events from parsers
+            foreach (var i in rds.rdsModes)
+                i.RefreshRequested -= RdsParserRefreshRequested;
+
             //Signal
             transportControls.Close();
 
@@ -1103,6 +1131,11 @@ namespace IQArchiveManager.Client
             return transportControls.TimeToSample(time);
         }
 
+        public DateTime GetTimeFromSample(long sample)
+        {
+            return transportControls.SampleToTime(sample);
+        }
+
         private void btnFileDelete_Click(object sender, EventArgs e)
         {
             //Check if the user really wants to delete the file
@@ -1248,6 +1281,18 @@ namespace IQArchiveManager.Client
             string temp = inputArtist.Text;
             inputArtist.Text = inputTitle.Text;
             inputTitle.Text = temp;
+        }
+
+        /// <summary>
+        /// Creates a new parser menu strip in the status bar.
+        /// </summary>
+        /// <param name="label"></param>
+        /// <returns></returns>
+        public ToolStripMenuItem CreateParserMenuStrip(string label)
+        {
+            ToolStripMenuItem item = new ToolStripMenuItem(label);
+            parserSettingsToolStripMenuItem.DropDownItems.Add(item);
+            return item;
         }
     }
 }

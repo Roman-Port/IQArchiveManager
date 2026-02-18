@@ -24,6 +24,7 @@ namespace IQArchiveManager.Client.RDS
         public event RdsReader_PatchersEventArgs OnPatcherUpdated;
 
         public BaseRdsMode[] rdsModes;
+        private BaseRdsMode activePatcher;
 
         public RdsReader(RdsParserStore parser)
         {
@@ -35,6 +36,11 @@ namespace IQArchiveManager.Client.RDS
         public List<RdsValue<string>> ParsedRtFrames => rdsRtFramesParsed;
         public List<RdsValue<string>> RawRtFrames => decoder.RtFrames;
         public List<RdsValue<ushort>> RawPiFrames => decoder.PiFrames;
+
+        /// <summary>
+        /// Gets the currently active patcher.
+        /// </summary>
+        public BaseRdsMode ActivePatcher => activePatcher;
 
         public void Reset()
         {
@@ -80,6 +86,7 @@ namespace IQArchiveManager.Client.RDS
         public void SwitchPatcher(BaseRdsMode patcher, IRdsPatchContext ctx)
         {
             OnPatcherUpdated?.Invoke(this, patcher);
+            activePatcher = patcher;
             rdsRtFramesParsed = patcher.Patch(ctx, new List<RdsValue<string>>(decoder.PsFrames.Select(x => x.Clone())), new List<RdsValue<string>>(decoder.RtFrames.Select(x => x.Clone())), new List<RdsValue<ushort>>(decoder.PiFrames.Select(x => x.Clone())));        
             MergeRt();
         }

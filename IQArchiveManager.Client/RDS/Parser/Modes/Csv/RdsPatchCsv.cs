@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
 {
@@ -21,6 +22,8 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
 
         private readonly ClipDatabase db;
         private readonly JObject config;
+        private ToolStripMenuItem stationPickerMenu;
+        private int targetPiCode = -1; // -1 means detect automatically
 
         private CsvProfile[] Profiles
         {
@@ -40,6 +43,61 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
             conf.ShowDialog();
             Profiles = conf.Profiles;
             db.Save();
+        }
+
+        public override void EditorInitialized(MainEditor editor)
+        {
+            base.EditorInitialized(editor);
+
+            //Create the picker for the default CSV station
+            stationPickerMenu = editor.CreateParserMenuStrip("CSV Station");
+
+            //Add the default
+            CreateStationPickerEntry("(automatic)", -1);
+
+            //Fill with items
+            foreach (var s in Profiles)
+                CreateStationPickerEntry(s.Name, s.PiCode);
+
+            //Set selection
+            RefreshStationPickerMenuSelection();
+        }
+
+        private void CreateStationPickerEntry(string label, int code)
+        {
+            //Create
+            var item = new ToolStripMenuItem
+            {
+                Text = label,
+                Tag = code
+            };
+
+            //Add events
+            item.Click += StationPickerMenuItemSelected;
+
+            //Add
+            stationPickerMenu.DropDownItems.Add(item);
+        }
+
+        private void StationPickerMenuItemSelected(object sender, EventArgs e)
+        {
+            //Get the associated PI code
+            targetPiCode = (int)(sender as ToolStripMenuItem).Tag;
+
+            //Refresh menu
+            RefreshStationPickerMenuSelection();
+
+            //Refresh editor frames
+            RequestReload();
+        }
+
+        private void RefreshStationPickerMenuSelection()
+        {
+            foreach (var i in stationPickerMenu.DropDownItems)
+            {
+                ToolStripMenuItem item = i as ToolStripMenuItem;
+                item.Checked = targetPiCode == (int)item.Tag;
+            }
         }
 
         public override bool IsRecommended(IRdsPatchContext ctx, List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
@@ -78,6 +136,46 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
             return false;
         }
 
+        /// <summary>
+        /// Loads a chunk of content between two times
+        /// </summary>
+        private void LoadCsvChunk(CsvProfile profile, IRdsPatchContext ctx, long startSample, long endSample, Dictionary<ushort, CsvHistoryDatabase> databases, List<RdsValue<string>> output, long fileLengthSamples, ref RdsValue<string> last)
+        {
+            //Get or create a database for this
+            CsvHistoryDatabase db;
+            if (!databases.TryGetValue(profile.PiCode, out db))
+            {
+                db = new CsvHistoryDatabase();
+                databases.Add(profile.PiCode, db);
+            }
+
+            //Get start and end time of this
+            DateTime absStart = ctx.GetTimeFromSample(startSample);
+            DateTime absEnd = ctx.GetTimeFromSample(endSample);
+
+            //Load all pages between these days
+            db.LoadPages(profile, absStart, absEnd);
+
+            //Loop through all events between start and end
+            foreach (var i in db.Items.Where(x => x.Time >= absStart && x.Time < absEnd))
+            {
+                //Get the sample from the time
+                long sample = ctx.GetSampleFromTime(i.Time);
+                if (sample < 0)
+                    continue; // shouldn't ever happen
+
+                //Update end time of last event if not already terminated
+                if (last != null)
+                    last.last = sample;
+
+                //Insert event (the end time will be updated somewhere else)
+                ParsedRdsValue<string> evt = new ParsedRdsValue<string>(i, sample, $"{i.Artist} // {i.Title}");
+                evt.last = fileLengthSamples;
+                output.Add(evt);
+                last = evt;
+            }
+        }
+
         public override List<RdsValue<string>> Patch(IRdsPatchContext ctx, List<RdsValue<string>> rdsPsFrames, List<RdsValue<string>> rdsRtFrames, List<RdsValue<ushort>> rdsPiFrames)
         {
             //Read all profiles
@@ -88,50 +186,29 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
                     profiles.Add(p.PiCode, p);
             }
 
-            //Begin processing all PI frames
+            //Set up processing...
             long fileLengthSamples = ctx.FileLengthSamples;
             Dictionary<ushort, CsvHistoryDatabase> databases = new Dictionary<ushort, CsvHistoryDatabase>();
             List<RdsValue<string>> output = new List<RdsValue<string>>();
             RdsValue<string> last = null;
-            foreach (var p in rdsPiFrames)
+            
+            //If in automatic mode, match to PI frames. Otherwise assume the whole recording is the selected station
+            if (targetPiCode == -1)
             {
-                //Resolve this PI code to a profile, if any
-                if (!profiles.TryGetValue(p.value, out CsvProfile profile))
-                    continue;
-
-                //Get or create a database for this
-                CsvHistoryDatabase db;
-                if (!databases.TryGetValue(profile.PiCode, out db))
+                //Process in automatic
+                foreach (var p in rdsPiFrames)
                 {
-                    db = new CsvHistoryDatabase();
-                    databases.Add(profile.PiCode, db);
+                    //Resolve this PI code to a profile, if any
+                    if (!profiles.TryGetValue(p.value, out CsvProfile profile))
+                        continue;
+
+                    //Load chunk
+                    LoadCsvChunk(profile, ctx, p.first, p.last, databases, output, fileLengthSamples, ref last);
                 }
-
-                //Get start and end time of this
-                DateTime absStart = ctx.GetTimeOfFrameStart(p);
-                DateTime absEnd = ctx.GetTimeOfFrameEnd(p);
-
-                //Load all pages between these days
-                db.LoadPages(profile, absStart, absEnd);
-
-                //Loop through all events between start and end
-                foreach (var i in db.Items.Where(x => x.Time >= absStart && x.Time < absEnd))
-                {
-                    //Get the sample from the time
-                    long sample = ctx.GetSampleFromTime(i.Time);
-                    if (sample < 0)
-                        continue; // shouldn't ever happen
-
-                    //Update end time of last event if not already terminated
-                    if (last != null)
-                        last.last = sample;
-
-                    //Insert event (the end time will be updated somewhere else)
-                    ParsedRdsValue<string> evt = new ParsedRdsValue<string>(i, sample, $"{i.Artist} // {i.Title}");
-                    evt.last = fileLengthSamples;
-                    output.Add(evt);
-                    last = evt;
-                }
+            } else
+            {
+                //Process whole recording as a chunk with the desired profile
+                LoadCsvChunk(profiles[(ushort)targetPiCode], ctx, 0, fileLengthSamples, databases, output, fileLengthSamples, ref last);
             }
 
             //We will now terminate messages when the EOM message is triggered

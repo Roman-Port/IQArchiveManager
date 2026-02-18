@@ -115,6 +115,7 @@ namespace IQArchiveManager.Client
             this.recordingDateLabel = new System.Windows.Forms.Label();
             this.clipGrid1 = new IQArchiveManager.Client.Components.ClipGrid();
             this.transportControls = new IQArchiveManager.Client.Components.TransportControls();
+            this.parserSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1.SuspendLayout();
             this.prefixSuffixPanel.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -621,7 +622,8 @@ namespace IQArchiveManager.Client
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.filesToolStripMenuItem,
-            this.toolsToolStripMenuItem});
+            this.toolsToolStripMenuItem,
+            this.parserSettingsToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(1385, 24);
@@ -991,6 +993,12 @@ namespace IQArchiveManager.Client
             this.transportControls.TabIndex = 0;
             this.transportControls.TimeChanged += new IQArchiveManager.Client.Pre.PreProcessorFileStreamReader_Event(this.transportControls_TimeChanged);
             // 
+            // parserSettingsToolStripMenuItem
+            // 
+            this.parserSettingsToolStripMenuItem.Name = "parserSettingsToolStripMenuItem";
+            this.parserSettingsToolStripMenuItem.Size = new System.Drawing.Size(96, 20);
+            this.parserSettingsToolStripMenuItem.Text = "Parser Settings";
+            // 
             // MainEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1118,5 +1126,6 @@ namespace IQArchiveManager.Client
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
         private System.Windows.Forms.ToolStripMenuItem blockCurrentRTToolStripMenuItem;
         private System.Windows.Forms.Button btnSwapTitleArtist;
+        private System.Windows.Forms.ToolStripMenuItem parserSettingsToolStripMenuItem;
     }
 }

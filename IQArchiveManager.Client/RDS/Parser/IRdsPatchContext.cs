@@ -14,5 +14,6 @@ namespace IQArchiveManager.Client.RDS.Parser
         DateTime GetTimeOfFrameStart<T>(RdsValue<T> value);
         DateTime GetTimeOfFrameEnd<T>(RdsValue<T> value);
         long GetSampleFromTime(DateTime time);
+        DateTime GetTimeFromSample(long time);
     }
 }
