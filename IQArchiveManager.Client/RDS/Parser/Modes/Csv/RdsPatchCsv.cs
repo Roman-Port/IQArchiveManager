@@ -23,6 +23,7 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
         private readonly ClipDatabase db;
         private readonly JObject config;
         private ToolStripMenuItem stationPickerMenu;
+        private ToolStripMenuItem ignoreDelimitersCheckbox;
         private int targetPiCode = -1; // -1 means detect automatically
 
         private CsvProfile[] Profiles
@@ -61,6 +62,11 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
 
             //Set selection
             RefreshStationPickerMenuSelection();
+
+            //Add switch to ignore delimiters
+            ignoreDelimitersCheckbox = editor.CreateParserMenuStrip("CSV Ignore Delimiters");
+            ignoreDelimitersCheckbox.CheckOnClick = true;
+            ignoreDelimitersCheckbox.CheckStateChanged += (object sender, EventArgs e) => RequestReload();
         }
 
         private void CreateStationPickerEntry(string label, int code)
@@ -216,22 +222,25 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.Csv
             }
 
             //We will now terminate messages when the EOM message is triggered
-            foreach (var o in output)
+            if (!ignoreDelimitersCheckbox.Checked)
             {
-                if (o is ParsedRdsValue<string> point)
+                foreach (var o in output)
                 {
-                    //Get all EOM messages from the profile
-                    string[] eomPsValues = point.Item.Profile.EomPsTriggers.Split(',');
+                    if (o is ParsedRdsValue<string> point)
+                    {
+                        //Get all EOM messages from the profile
+                        string[] eomPsValues = point.Item.Profile.EomPsTriggers.Split(',');
 
-                    //Convert grace from milliseconds to samples
-                    long graceSamples = (MainEditor.AUDIO_SAMPLE_RATE * (long)point.Item.Profile.EomGrace) / 1000;
+                        //Convert grace from milliseconds to samples
+                        long graceSamples = (MainEditor.AUDIO_SAMPLE_RATE * (long)point.Item.Profile.EomGrace) / 1000;
 
-                    //Scan for all PS frames between the start and end that have a value matching one of the EOM triggers
-                    RdsValue<string> eom = rdsPsFrames.Where(x => x.first >= o.first + graceSamples && x.first < o.last && eomPsValues.Contains(x.value)).FirstOrDefault();
+                        //Scan for all PS frames between the start and end that have a value matching one of the EOM triggers
+                        RdsValue<string> eom = rdsPsFrames.Where(x => x.first >= o.first + graceSamples && x.first < o.last && eomPsValues.Contains(x.value)).FirstOrDefault();
 
-                    //If one was found, set our end point to that
-                    if (eom != null)
-                        o.last = eom.first;
+                        //If one was found, set our end point to that
+                        if (eom != null)
+                            o.last = eom.first;
+                    }
                 }
             }
 
