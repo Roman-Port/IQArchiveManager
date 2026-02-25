@@ -54,9 +54,9 @@ namespace IQArchiveManager.Client
             this.inputSuffix = new System.Windows.Forms.ComboBox();
             this.panel3 = new System.Windows.Forms.Panel();
             this.btnShiftSuffix = new System.Windows.Forms.Button();
-            this.inputTitle = new System.Windows.Forms.TextBox();
+            this.inputTitle = new IQArchiveManager.Client.Components.QuickTextBox();
             this.labelTitle = new System.Windows.Forms.Label();
-            this.inputArtist = new System.Windows.Forms.TextBox();
+            this.inputArtist = new IQArchiveManager.Client.Components.QuickTextBox();
             this.labelArtist = new System.Windows.Forms.Label();
             this.inputFlagOk = new System.Windows.Forms.CheckBox();
             this.inputFlagHd = new System.Windows.Forms.CheckBox();
@@ -1057,9 +1057,9 @@ namespace IQArchiveManager.Client
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.ComboBox inputSuffix;
-        private System.Windows.Forms.TextBox inputTitle;
+        private IQArchiveManager.Client.Components.QuickTextBox inputTitle;
         private System.Windows.Forms.Label labelTitle;
-        private System.Windows.Forms.TextBox inputArtist;
+        private IQArchiveManager.Client.Components.QuickTextBox inputArtist;
         private System.Windows.Forms.Label labelArtist;
         private System.Windows.Forms.CheckBox inputFlagOk;
         private System.Windows.Forms.CheckBox inputFlagHd;

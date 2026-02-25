@@ -121,6 +121,9 @@
     <Compile Include="Components\FolderListPickerItem.Designer.cs">
       <DependentUpon>FolderListPickerItem.cs</DependentUpon>
     </Compile>
+    <Compile Include="Components\QuickTextBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Components\RebuildDatabaseDialog.cs">
       <SubType>Form</SubType>
     </Compile>

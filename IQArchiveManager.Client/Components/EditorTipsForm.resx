@@ -133,6 +133,8 @@ ALT+C -&gt; Move end to playhead
 
 ALT+X -&gt; Find via RDS
 ALT+RIGHT -&gt; Next RDS item
-ALT+LEFT -&gt; Previous RDS item</value>
+ALT+LEFT -&gt; Previous RDS item
+
+ALT+Left Click on the title/artist fields to trim the beginning.</value>
   </data>
 </root>
