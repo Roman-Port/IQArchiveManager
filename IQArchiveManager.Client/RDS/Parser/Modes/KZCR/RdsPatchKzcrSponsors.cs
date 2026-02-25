@@ -76,12 +76,14 @@ namespace IQArchiveManager.Client.RDS.Parser.Modes.KZCR
             trackArtist = null;
             stationName = null;
 
-            //Try to find the "Z103 - " leading text
-            if (!rt.value.StartsWith(SONG_HEADER))
-                return false; // fail
+            //If sponsor, fail
+            if (rt.value.StartsWith(SPONSOR))
+                return false;
 
-            //Get the title/artist component
-            string info = rt.value.Substring(SONG_HEADER.Length);
+            //Try to find the "Z103 - " leading text that may or not be there
+            string info = rt.value;
+            if (info.StartsWith(SONG_HEADER))
+                info = rt.value.Substring(SONG_HEADER.Length);
 
             //Find the split
             int split = info.IndexOf(" - ");
